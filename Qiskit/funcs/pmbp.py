@@ -8,11 +8,8 @@ def PMBP(e_qubits, bases, n_modulus, i_level, k=2):
     
     cl = []
     
-    # --- LAYER 0: LEAVES ---
     for j in range(d):
         val = int(bases[j])
-        # Determine minimum bits needed to represent this constant
-        # We add 1 if it's small to ensure it can hold the '1' or the 'constant'
         leaf_width = max(val.bit_length(), 1) 
         
         reg = QuantumRegister(leaf_width, f'leaf_b{i_level}_e{j}')
@@ -23,7 +20,6 @@ def PMBP(e_qubits, bases, n_modulus, i_level, k=2):
         qc.append(CMMC(leaf_width, val), [e_qubits[j], *reg])
         cl.append(reg)
 
-    # --- LAYERS 1 to log(d): FOLDING ---
     layer_idx = 0
     while len(cl) > 1:
         l = len(cl)

@@ -4,14 +4,9 @@ from .gates.gates import MSQUARE, QQMULT
 import numpy as np
 
 def QMME(qc, e_regs, L, precomputed_bases, N, k=2):
-    """
-    L: Number of bit-levels (e.g., sqrt(n))
-    precomputed_bases: 2D array [d][L] of precomputed constants
-    """
     d = len(precomputed_bases)
     n = int(np.ceil(np.log2(N)))
     
-    # 1. Permanent registers
     acc = QuantumRegister(n, name='acc')
     acc_sq = QuantumRegister(n, name='acc_sq')
     temp_res = QuantumRegister(n, name='temp_res')
