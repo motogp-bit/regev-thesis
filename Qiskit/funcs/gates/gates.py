@@ -50,7 +50,6 @@ def MSQUARE(n, k=2):
 def QQMULT(n_a, n_b, n_res, k=2):
     reg_a = QuantumRegister(n_a, 'a')
     reg_b = QuantumRegister(n_b, 'b')
-    #n_res = n_a + n_b unless n_a + n_b > n
     reg_res = QuantumRegister(n_res, 'res')
     qc = QuantumCircuit(reg_a, reg_b, reg_res, name="QMULT_Asym")
 

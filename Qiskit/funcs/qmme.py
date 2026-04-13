@@ -3,7 +3,7 @@ from .pmbp import PMBP
 from .gates.gates import MSQUARE, QQMULT
 import numpy as np
 
-def QMME(qc, e_regs, L, precomputed_bases, N, k=2):
+def QMME(qc, e_regs, precomputed_bases, N, k=2):
     d = len(precomputed_bases)
     n = int(np.ceil(np.log2(N)))
     
@@ -17,7 +17,7 @@ def QMME(qc, e_regs, L, precomputed_bases, N, k=2):
     msquare_gate = MSQUARE(n, k)
     qmult_gate = QQMULT(n, n, n, k) # n x n -> n bits (Modular)
 
-    for i in reversed(range(L)):
+    for i in reversed(range(d)):
         qc.append(msquare_gate, [*acc, *acc_sq])
         
         for m in range(n):
@@ -28,7 +28,6 @@ def QMME(qc, e_regs, L, precomputed_bases, N, k=2):
         current_bit_bases = [precomputed_bases[j][i] for j in range(d)]
         current_e_bits = [e_regs[j][i] for j in range(d)]
         
-        # Build the tree gate and identify the root register
         pmbp_gate, pmbp_root_reg = PMBP(current_e_bits, current_bit_bases, n, i, k)
         
         for reg in pmbp_gate.definition.metadata['registers']:
@@ -41,7 +40,7 @@ def QMME(qc, e_regs, L, precomputed_bases, N, k=2):
         for m in range(n):
             qc.swap(acc[m], temp_res[m])
             
-        qc.append(qmult_gate.inverse(), [*acc, *pmbp_root_reg, *temp_res])
+        qc.append(QQMULT.inverse(), [*acc, *pmbp_root_reg, *temp_res])
         qc.append(pmbp_gate.inverse(), pmbp_gate.qubits)
 
     return acc
