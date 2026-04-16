@@ -6,9 +6,9 @@ def is_prime(num):
         if num % i == 0: return False
     return True
 
-def get_bases(N,d, primes):
+def get_bases(N,d, primes, exp):
     
-    base_seeds = [(p**2) % N for p in primes]
+    base_seeds = [(p**exp) % N for p in primes]
     
     table = np.zeros((d, d), dtype=object)
     

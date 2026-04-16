@@ -2,6 +2,10 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import Statevector
 from funcs import *
+from sympy.ntheory import sqrt_mod
+import math
+from sympy import Matrix
+from sympy.polys.numberfields import lll
 
 N = 446.393 #p = 509, q = 877, d = 5
 Ns = 77 #11*7, d = 3
@@ -14,7 +18,7 @@ primes = []
 current = 2
 while len(primes) < d:
     if is_prime(current):
-          primes.append(current)
+        primes.append(current)
     current += 1
 
 R = np.sqrt(2* d) + 1 #R > sqrt(2d)
@@ -34,17 +38,12 @@ D = temp
 
 	
 
-regs = []
-for i in range(d):
-     reg = QuantumRegister(n, name=f'reg{i}')
-     regs.append(reg)
+regs = [QuantumRegister(n, f'dim_{i}') for i in range(d)]
 
 
 reg_size = 2**d #2^n/d
-amps_1d = gaussian_signed(reg_size, R, D/2)
-amps_nd = amps_1d
-for _ in range(d - 1):
-    amps_nd = np.kron(amps_nd, amps_1d)
+amps_nd = gaussian(n, D / 2, R, d)
+
 
 product = QuantumRegister(n, 'product')
 qc = QuantumCircuit(*regs)
@@ -58,7 +57,8 @@ qc.add_register(product)
 
 
 e = []
-product = qmme(qc, e, get_bases(N, d, primes), N)
+product = qmme(qc, e, get_bases(N, d, primes, 2), N)
+b = get_bases(N, d, primes, 1)
 qc.measure(product)
 state = Statevector.from_instruction(qc)
 print(state)
@@ -69,7 +69,7 @@ samples.append(cr / D)
 
 #END LOOP
 samples = [[x + D/2 for x in row] for row in samples]
-M = []
+m = []
 for i in range():
     temp = []
     for j in range():
@@ -84,9 +84,11 @@ for i in range():
             temp.append(0)
         else:
             temp.append(w[i-d][j] / delta)
-    M.append(temp)
-exps = LLL(M)
-GS_exps = Gram-Schmidt(exps)
+    m.append(temp)
+M = Matrix(m)
+exps = lll(M)
+Exps = Matrix(exps)
+GS_exps = Matrix.orthogonalize(Exps)
 cands = []
 for i in range(len(GS_exps)):
     if np.linalg.norm(GS_exps[i]) < np.sqrt(k) * 2^(k/2) * T:
@@ -100,12 +102,14 @@ for cand in cands:
         f_exps.append((cand[i] - (cand[i] % 2)) / 2)
         factor = (factor * (b[i] if cand[i] % 2 == 1 else 1)) % N
     prod = 1
-    #COMPUTE SQRT MODULO N OF FACTOR
+    f_sqrt = sqrt_mod(factor, N)
+    X = 1
     for i in range(d):
-        X = MODEXP(b[i],f_exps[i]])
-    p = gcd(X-1, N)
+        X *= pow(b[i],f_exps[i],N) #classical modular exponentiation
+    X= (X * f_sqrt) % N
+    p = math.gcd(X-1, N)
     if p > 1 and p < N:
-        return p
+        print(p)
 
 
 
