@@ -1,5 +1,5 @@
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Statevector
 from funcs import *
 from sympy.ntheory import sqrt_mod
@@ -7,7 +7,8 @@ import math
 from sympy import Matrix
 from sympy.polys.numberfields import lll
 
-N = 446.393 #p = 509, q = 877, d = 5
+backend = Aer.get_backend("qasm_simulator")
+N = 446393 #p = 509, q = 877, d = 5
 Ns = 77 #11*7, d = 3
 n = int(np.ceil(np.log2(Ns)))
 d = int(np.sqrt(n))
@@ -33,65 +34,63 @@ for i in range(r + (r%2) , 2*r, 2):
         temp = i
         break
 D = temp
-
-
-
-	
-
-regs = [QuantumRegister(n, f'dim_{i}') for i in range(d)]
-
-
 reg_size = 2**d #2^n/d
+samples = []
 amps_nd = gaussian(n, D / 2, R, d)
+for _ in range(d + k):
+
+    regs = [QuantumRegister(n, f'dim_{i}') for i in range(d)]
+    product = QuantumRegister(n, 'product')
+
+    cr_e = ClassicalRegister(n * d, 'cr_e')
+    cr_p = ClassicalRegister(n, 'cr_p')
+
+    qc = QuantumCircuit(*regs, product, cr_e, cr_p)
+    qc.initialize(amps_nd, qc.qubits[:n*d])
+
+    product = qmme(qc, regs, get_bases(N, d, primes, 2), N)
+
+    qc.measure(product, cr_p)
+
+    for reg in regs:
+        qc.append(QFT(n), reg)
+
+    for j in range(d):
+        qc.measure(regs[j], cr_e[j*n:(j+1)*n])
+
+    result = backend.run(qc, shots=1).result()
+    counts = result.get_counts()
+    bitstring = list(counts.keys())[0]
+    e_bits = bitstring[n:]  
+    e_vals = [int(e_bits[j*n:(j+1)*n], 2) for j in range(d)]
 
 
-product = QuantumRegister(n, 'product')
-qc = QuantumCircuit(*regs)
-qc.initialize(amps_nd, qc.qubits)
-qc.add_register(product)
-state = Statevector.from_instruction(qc)
-print(state)
+    samples.append(e_vals)
 
-qc.add_register(product)
-
-
-
-e = []
-product = qmme(qc, e, get_bases(N, d, primes, 2), N)
 b = get_bases(N, d, primes, 1)
-qc.measure(product)
-state = Statevector.from_instruction(qc)
-print(state)
-#qc has collapsed to the values that equal u
-
-qc.measure(cr)
-samples.append(cr / D)
-
-#END LOOP
-samples = [[x + D/2 for x in row] for row in samples]
+samples = [[x / D for x in row] for row in samples]
 m = []
-for i in range():
+for i in range(2 * d + k):
     temp = []
-    for j in range():
+    for j in range(d + k):
         if i == j:
             if i > d:
                 temp.append(1/delta)
             else:
                 temp.append(1)
-        elif (i and j <= d) or (i and j > d):
+        elif (i <= d and j <= d) or (i > d and j > d):
             temp.append(0)
         elif i <= d and j > d:
             temp.append(0)
         else:
-            temp.append(w[i-d][j] / delta)
+            temp.append(samples[i-d][j] / delta)
     m.append(temp)
 M = Matrix(m)
 exps = lll(M)
 Exps = Matrix(exps)
-GS_exps = Matrix.orthogonalize(Exps)
 cands = []
-for i in range(len(GS_exps)):
-    if np.linalg.norm(GS_exps[i]) < np.sqrt(k) * 2^(k/2) * T:
+for i in range(len(Exps)):
+    if np.linalg.norm(Exps[i]) < np.sqrt(k) * 2**(k/2) * T:
         cands.append(exps[i])
 
 
@@ -110,6 +109,7 @@ for cand in cands:
     p = math.gcd(X-1, N)
     if p > 1 and p < N:
         print(p)
+        break
 
 
 
