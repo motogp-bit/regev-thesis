@@ -33,15 +33,6 @@ D = temp
 
 
 	
-def gaussian_signed(n, sigma, shift):
-    N = 2**n
-    amps = np.zeros(N)
-
-    for e in range(-1 * shift, shift):  
-        idx = e + shift
-        amps[idx] = np.exp(-np.pi * (e**2) / (sigma**2))
-
-    return amps / np.linalg.norm(amps)
 
 regs = []
 for i in range(d):
