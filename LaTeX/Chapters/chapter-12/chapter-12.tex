@@ -1,0 +1,10 @@
+\chapter{Qiskit}
+
+The code used here is available on github (GITHUB LINK)
+
+Notice that the D/2 shift doesn't appear anywhere in our code, besides determining the amplitudes for the gaussian. That is because in practice, we don't need to implement an actual shift: the product is computed using the shifted indices, the QFT ignores the shift, and the matrix $\Lambda'$ is simply normalized to [0,1).
+
+In our implementation, we used for simplicity a binary tree with control-x gates and QFT-based $O(n^2)$ quantum-quantum multiplication. Our main registers for the multiplication $acc,acc_{sq}$ and $rst$ need n qubits each, and we also need $O(n)$ qubits for the exponents (since the maximum exponent is $L\approx O(\sqrt{n})$ bits and we have d exponent registers). For the binary tree, we have d leaves, with the registers varying in size and only reaching size n when (and if) the product exceeds N. 
+
+Note that there are, as we said in chapter 10, ways of dropping squaring (and multiplication in general) down to $O(nlogn)$, with an increase in classical memory, like Schonhage-Strassen or windowed QFT with CP gates that have multiple controls (we will present a promising idea that is somewhat similar to the second in chapter 15). For code readability and due to lack of available libraries, we chose $O(n^2)$ QFT-based multiplication instead.
+

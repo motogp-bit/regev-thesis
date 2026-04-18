@@ -1,0 +1,33 @@
+\chapter{Presenting the algorithm}
+
+Regev's algorithm can therefore be summarized in the following 12 steps. Let some $d \in \mathbb{Z}$ with $d \approx \sqrt{n}$.\\
+
+1. Create a superposition of all $d$-dimensional vectors $e_1 \dots e_d$, and store them into $d$ quantum registers, weighted by the gaussian function described in Chapter 8.\\
+2. Create a register which will contain the superposition $\prod_{i=1}^d a_i^{e_i} \pmod N$, where $a_i$ are the squares of the first $d$ primes, using the procedure described in Chapter 7, but with quantum gates.\\
+3. Measure the sole register to obtain some value $u$. This forces the first d registers to collapse into the vectors that satisfy $\prod_{i=1}^d a_i^{e_i} =u$. This represents some coset $\mathit {\Lambda}_t$ of the lattice $\mathit \Lambda$ formed by the vectors that satisfy the above relation for $u = 1$ (Chapter 5).\\
+4. Apply QFT to the first register. This turns the superposition in the first d registers into a superposition of dual lattice vectors, and the representative $t$ into a phase applied to the dual lattice vectors.\\
+5. Measure the first register and divide the result by $D$ to get a sample of $\mathit {\Lambda^*}$.\\
+6. Repeat steps 1 through 5 $d+k$ times to get $d+k$ samples and use them to create a basis of $\Lambda'$.\\
+7. Solve SVP on $\mathit \Lambda'$ using LLL, acquiring vectors $\mathbf{e',e'',e''',}\dots$ etc. with coordinates $e'_1 \dots e'_d, e''_1\dots e''_d$ etc. that satisfy the bound from Chapter 9\\
+8.For each candidate $\mathbf{e} \in \set{\mathbf{e',e'',e''',\dots}}$ in order, do the following\\
+9.Compute $X = \prod_{i=1}^d b_i^{e_{i}} \pmod N$
+10. Compute $\gcd(X-1,N)$ to get a factor of N.\\
+11. If the factor is trivial, try the next candidate.\\
+12. If all factors are trivial, run the algorithm again.
+
+Note that Regev basically stops analyzing after step 7, because he considers factoring to follow in an elementary way.
+
+Parity reduction refers to a process where we factor out the bases of every odd exponent in a product. Since all $a_i$ are squares of small primes, this product is a quadratic residue modulo N, and thus has a square root modulo N which we can classically compute separately, and multiplying the square root of the reduced product with the square root of the factor will give us X regardless.
+
+We should also mention that since the Gaussian splits product-wise, taking the tensor product $d$ times we get a superposition over all d-dimensional vectors.
+
+In terms of complexity, we will need $O(\sqrt{n})$ quantum registers, each containing values of size up to $2^{n/d} = 2^{\sqrt{n}}$, so we have $O(n)$ qubits for the exponent register. The product register contains values up to $N-1$, so we need $O(n)$ qubits for that as well. However, Regev requires approximately $O(\sqrt{n})$ ancillas to compute his modular product, bringing the total qubit count up to $O(n) + O(n)\cdot O(\sqrt{n}) = O(n^{3/2})$. This is unequivocally the dominating factor. Other factors include the qubits required to prepare the gaussian state ($O(n)$ with no ancillas according to Lemma 3.1 of \cite{RagavanVaikuntanathan2023}).
+
+Now, the bottleneck for the gates also has to do with modular exponentiation. Regev states that for small $a_i$, the intermediate factor multiplying step can be made trivial by building up a binary tree with $d$ leaves(and perhaps precomputing the first and second layers), and the only multiplications that are actually performed on the large numbers are the squarings. Notice also that we will use the same factors across every iteration that we run. As we described in chapter 7, we perform $O(\sqrt{n})$ squarings, since all exponents are $<2^{O(d)}$, so is the largest exponent, and the number of squarings to be performed is \# bits in the largest exponent - 1. Modular squaring (and modular multiplication in general) can be implemented with $O(n \cdot poly(logn))$ gates, in a manner similar to the Schonhage-Strassen algorithm mentioned in the Shor complexity chapter. Summarizing all that, we get $O(n^{3/2} \cdot poly(logn))$ gates.
+
+Lastly, by our results in chapters 6 and 9, setting $k = 4$ gives us a probability that is good enough for all practical purposes. In general, we need $O(d) + $ (some constant number of runs) to have reliable results, so $O(\sqrt{n})$ runs. In short, we have
+
+Qubit complexity: $O(n^{3/2})$ qubits.\\
+Gate complexity: $O(n^{3/2} poly(logn))$ gates.\\
+Runs: $O(\sqrt{n})$ independent runs with high probability.
+

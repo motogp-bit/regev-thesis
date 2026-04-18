@@ -1,0 +1,115 @@
+\documentclass[11pt, twoside, a4paper]{report}
+\usepackage[margin=1in]{geometry}
+\input{packages}
+\interfootnotelinepenalty=10000
+\let\oldmathit\mathit
+\renewcommand{\mathit}[1]{\ifx\Lambda#1\varLambda\else\oldmathit{#1}\fi}
+
+
+\begin{document}
+
+
+\begin{titlepage}
+\centering
+\includegraphics[width=0.25\textwidth]{FrontMatter/logo.png}\\[1cm]
+
+{\LARGE Aristotle University of Thessaloniki \par}
+\vspace{0.3cm}
+{\normalsize Faculty of Sciences - School of Informatics \par}
+\vspace{2cm}
+
+% Thesis Title
+{\Huge \bfseries Regev's Algorithm \par}
+\vspace{2cm}
+
+% Author
+{\normalsize Author:Papadopoulos Georgios \par}
+{\normalsize Supervisor:Konofaos Nikolaos \par}
+
+
+\vfill
+
+
+A thesis submitted in fulfillment of the requirements for the degree of Bachelor\\
+
+\vspace{1cm}
+
+% Date
+{\Large March 2026}
+
+\end{titlepage}
+
+\pagenumbering{roman}
+
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{part}{Declaration}
+\include{FrontMatter/declaration}
+
+\phantomsection
+\addcontentsline{toc}{part}{Dedication}
+\include{FrontMatter/dedication}
+
+\phantomsection
+\addcontentsline{toc}{part}{Abstract}
+\include{FrontMatter/abstract}
+
+\phantomsection
+\addcontentsline{toc}{part}{Acknowledgements}
+\include{FrontMatter/acknowledgements}
+
+
+
+\fancyhf{}
+\pagestyle{fancy}
+\setlength{\headheight}{15pt}
+
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\fancyhead[L]{\nouppercase\leftmark}
+\fancyfoot[C]{\thepage}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+\fancyhead[R]{\textit{\nouppercase\rightmark}}
+
+
+
+\part{Shor's Algorithm}
+
+\include{Chapters/chapter-1/chapter-1}
+\include{Chapters/chapter-2/chapter-2}
+\include{Chapters/chapter-3/chapter-3}
+
+\part{Mathematical Background}
+
+\include{Chapters/chapter-4/chapter-4}
+\include{Chapters/chapter-5/chapter-5}
+\include{Chapters/chapter-6/chapter-6}
+\include{Chapters/chapter-7/chapter-7}
+\include{Chapters/chapter-8/chapter-8}
+\include{Chapters/chapter-9/chapter-9}
+
+
+\part{Regev's Algorithm}
+\include{Chapters/chapter-10/chapter-10}
+\include{Chapters/chapter-11/chapter-11}
+\include{Chapters/chapter-12/chapter-12}
+\include{Chapters/chapter-13/chapter-13}
+\include{Chapters/chapter-14/chapter-14}
+\include{Chapters/chapter-15/chapter-15}
+
+
+\clearpage
+\addcontentsline{toc}{part}{Bibliography}
+
+\renewcommand{\bibname}{BIBLIOGRAPHY}
+\bibliographystyle{plain} % 
+\bibliography{references}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

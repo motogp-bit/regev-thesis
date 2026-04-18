@@ -1,0 +1,91 @@
+\chapter{Regev optimizations: Fibonacci exponentiation}
+
+The first optimization we are going to talk about has to do with transforming the base in which we represent the numbers in a base that is perhaps more suited when dealing with exponents. To do this, we will entice the amateur mathematics enjoyer by bringing the Fibonacci numbers and sequence into the picture.
+To explore this concept, first we will need to talk about Zeckendorf's theorem.The statement is the following:\\
+
+$\textbf{Lemma 15.1 (Zeckendorf)}$\\
+Every positive integer $k$ can be uniquely represented as a sum of non-consecutive Fibonacci numbers.In other word, for every $k \in \mathbb{Z}$:
+\begin{equation}
+    k = \sum_j c_jFi, \: c_j \in \set{0,1}
+\end{equation}
+
+No two consecutive $c_i$ can be 1, because consecutive Fibonacci numbers can be replaced with the next Fibonacci number according to the recursive formula $F_n = F_{n-1} + {F_n-2}$. This means that representing exponents as bits using a Fibonacci base is perfectly valid. We will now describe a way of computing $a^{k}$ using a Fibonacci base.First, we need to compute the Fibonacci representation of k. To do that in a quantum circuit, we use a greedy algorithm.
+
+$\textbf{Step 1.}$ Compute all Fibonacci numbers up to $k$ using the recursive formula, starting from $F_1 = 1,F_2 = 2$. Initialize an array F of 0s with size m-1, where $F_m$ is the largest Fibonacci number smaller than $k$ and let $j \gets m - 1$.\\
+$\textbf{Step 2.}$ $F[j] = 1$\\
+$\textbf{Step 3.}$ $k \gets F_m - k$\\
+$\textbf{Step 4.}$ Compute the largest Fibonacci number smaller than k using binary search on the computed Fibonacci series\\
+$\textbf{Step 5.}$Repeat from Step 2 until $k = 0$.\\
+
+
+F contains the binary representation of k. Now, computing $a^k$ is very easy, because we can use the same logic as modular exponentiation.\\
+
+Assume the greedy algorithm in the previous step leaves us with a Fibonacci representation $k_{\phi}$ consisting of all the $c_j$, and $m$ Fibonacci numbers computed, starting from $F_2 = 1$. Let us present the algorithm for Fibonacci exponentiation, as described by Kaliski \cite{Kaliski2017}\\
+
+\begin{algorithm}
+\caption{Fibonacci exponentiation}
+\textbf{Input:} $a, k, N$, the sequence $c_1,c_2 \dots c_m$\\
+\textbf{Output:} $a^k \pmod N$
+\begin{algorithmic}[1]
+\State $(c,d,e) \gets (1,a,1)$
+\For{$j = 1$ to $m$}
+    \State $(c,d) \gets (d,cd \pmod N)$
+    \If{$c_j == 1$}
+        \State $e \gets de \pmod N$
+    \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+This algorithm, however, poses a problem. First, note that gates in a quantum circuit must  necessarily be reversible, else there is no way of undoing a computation to in order to clear the quantum register. Step 3 on a quantum level means performing the computation $$(a, b) \mapsto(a, ab\mod N)$$. The inverse gate is $$(a, b) \mapsto(a, a^{-1}b \mod N)$$ Setting $b = 1$, this is equivalent to computing an inverse modulo N, meaning Step 3 requires a computation that is at least as hard as that. Note that in Regev's algorithm we severely limited how many of those operations we had to perform for the same reason - it's not easy \footnote{see section 1.3 in Ragavan and Vaikuntanathan's paper \cite{RagavanVaikuntanathan2023} for more information}.\\
+
+
+
+Consider the original Regev product $\prod_{i=1}^d b_i^{e_i}$ (the algorithm is also compatible with the $D/2$ shift). Suppose we have a fibonacci representation of $e_i$ 
+\begin{equation}
+    \prod_{j=1}^m c_{i,j} F_j
+\end{equation}
+where $c_{i,j}$ denotes each of the earlier $c_j$ but now for every base. Then we can plug \textbf{Eq 15.2} into the Regev product and write the resulting expression - which is \textbf{equivalent} to the Regev product, as follows: $$\prod_{j=1}^m(\prod_{i=1}^d b_i^{c_{i,j}})^ {F_j}$$
+Denote the inner product as $C_j$. This leaves us with
+\begin{equation}
+    \prod_{j=1}^m C_j^ {F_j}
+\end{equation}
+Then, the inverse of $C_j$ modulo N is 
+\begin{equation}
+    C_j^{-1} = \prod_{i=1}^d b_i^{-c_{i,j}} = \prod_{i=1}^d b_i^{-1} \cdot \prod_{i=1}^d b_i^{1 -c_{i,j}}
+\end{equation}
+The first term is a constant that can be precomputed classically, since we decide what the $b_i$ will be before the algorithm starts, using the extended Euclidean algorithm. Since $c_{i,j} \in \set{0,1}$, the second term is also easy to compute by applying Algorithm 3 with all $c_i$ bit flipped. Given a precomputation of the modular inverses of the bases $b_i$ modulo N, in Lemmas 5.1 and 5.2 of \cite{RagavanVaikuntanathan2023}, we are provided with the proof for the existence of a circuit that, given $a, b, a^{-1},b^{-1}$ in quantum registers, produces quantum registers that include $ab$ alongside $(ab)^{-1}$. This means we can drag $C_j$ and $C_j^{-1}$ along for the entirety of the circuit.
+
+Let us, finally, describe Algorithm 5.2 from Ragavan and Vaikuntanathan\cite{RagavanVaikuntanathan2023} in terms of what we wrote earlier. It is important to note that this is applied to the shifted exponent $e_i = c_i + D/2$.
+
+\begin{algorithm}[H]
+\caption{Fibonacci multi-exponentiation (top-down)}
+\textbf{Input:} Initial quantum state $\ket{e}$, precomputed $B = \prod_{i=1}^d b_i^{-1}$\\
+\textbf{Output:} State consisting of a superposition $\prod_{i=1}^d b_i^{e_i} \pmod N$
+\begin{algorithmic}[1]
+\State Compute $c_{i,j}$ according to our initial algorithm.
+\State $R_1 \gets 1$, $R_2 \gets 1$
+\For {$j = m$ downto 1}
+    \State $R_1 \gets R_1R_2$
+    \State Compute $\ket{\prod_{i=1}^d b_i^{1 -c_{i,j}}}$
+    \State Use $B$ to convert the previous state into $\ket{C_j^{-1} \pmod N}$
+    \State Compute the state $\ket{C_j}$. 
+    \State $R_1 \gets R_1C_j$
+    \State Uncompute $\ket{C_j}$ using $\ket{C_j^{-1}}$
+    \State Swap $R_1$ and $R_2$ (the registers that contain the superpositions created for both)
+\EndFor
+\State $R_2$ is now entangled with $\ket{e}$, and holds the superposition of the possible products.
+\State \Return $R_2$
+\end{algorithmic}
+\end{algorithm}
+
+We can think of $C_j$ as a multiplication factor that is applied in each individual step, just as Regev would apply, for example, $b_1b_3b_4$. It is very important that we go top-down, because it means that when inverting the multiplication factor, the values we remove aren't required for the later registers - they are used up and can be safely "destroyed" by inversion without affecting the entangled superposition. The operation performed in each step is essentially $R_1 \gets R_1 R_2 C_j$, so we accumulate the existing product by the next Fibonacci number and the multiplication factor, and then we swap the registers so that $R_1$ always has the previous value at the end of the loop.
+
+We avoided thorough analysis of the qubit requirements here because, although they constitute a significant part of why everything is done the way it is, explaining them thoroughly would take incredibly long. All that needs to be said is that, given that a black box multiplication circuit that performs
+$$\ket{a} \ket{b} \ket{t} \ket{0^S} \to \ket{a} \ket{b} \ket{t+ ab} \ket{0^S}$$ requires $S = log_2N + A$ qubits ($A$ refers to the ancillas) and $G$ gates, the above algorithm can be executed with $S + (A/log\phi + 6 + O(1))n$ qubits and $O(\sqrt{n}G + n^{3/2})$ gates, which for the classical Van Der Hoeven algorithm for multiplication\cite{HarveyVanDerHoeven2021} is equivalent to $O(nlogn)$ qubits and $O(n^{3/2} logn)$ gates, achieving a significant improvement over Regev's $O(n^{3/2})$ qubits.
+
+
+
+
+
+

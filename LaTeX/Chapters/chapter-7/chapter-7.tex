@@ -1,0 +1,79 @@
+\chapter{QFT and Gaussians}
+
+Earlier in the paper, we threatened the reader that we would describe how QFT in n dimensions would work in the context of Regev's algorithm. In this chapter, we will review this concept, along with how it is related to obtaining a basis for the dual lattice from cosets of the original lattice (which we can then use to obtain a basis for the original lattice itself).
+
+The term $\mathbb{Z}^d_D$ will appear a lot in this chapter. This refers to the set of all d dimensional integer vectors $\mathbb{Z}^d$ whose entries are integers in the ring $\mathbb{Z}_D$ - the integers modulo $D$ along with the addition operation.
+
+Now, define the following gaussian function $$\rho_s(\mathbf{e}) = exp(-\pi \lVert \mathbf{e} \rVert^2 / s^2)$$
+where $\mathbf{e}$ is the vector with entries $e_i$. The corresponding distribution has a standard deviation of $s$ and a mean of $(max(e_i) + 1) / 2$. Fix some $R$ to be our s.d., which we will tune later. It would be ideal if the mean in our gaussian was 0, for reasons that will be very clear later.  To do that, let $D \in \set{2\sqrt{d}R, 4\sqrt{d}R}$, and use $\mathbf{z} =\mathbf{e}- D/2$. This is also useful because quantum registers usually hold positive numbers, but our operations will require negative ones, hence we will map unsigned to signed integers. Then $\rho_R(\mathbf{z})$ is a gaussian with mean 0 and s.d. $R$. Taking $D$ to be a power of 2, the vectors we are summing over have all integer entries and thus their superposition forms a lattice.\\
+
+
+For notation simplicity, we will write $K = \set{-D/2,
+\dots D/2 -1}^d$.
+Rewriting $\rho_R(\mathbf{z})$ in terms of the shifted exponents, the following is a gaussian superposition over K.
+\begin{equation}
+    \ket{\psi} = \sum_{\mathbf{z} \in K}  \rho_R(\mathbf{z}) \ket{\mathbf{z}}
+\end{equation}
+ Regev himself shows a way to approximate such a superposition within $1/poly(d)$ in a previous paper 
+\cite{Regev2009}. Now, let's say we have a lattice $\Lambda \subset \mathbb{Z}^n_N$ and some coset of $\Lambda$ $\Lambda_{\mathbf{t}} = \set{\Lambda + \mathbf{t}}$ with representative $\mathbf{t}$, where $\mathbf{t} \in \mathbb{Z}^n$, but crucially $\mathbf{t} \notin \Lambda$. This represents $\Lambda$ shifted by some arbitrary vector $\mathbf{t}$. Through some procedure which will be described in the actual algorithm chapter, suppose this state is transformed to be proportional (equivalent up to normalization) to $\psi_1$, where
+\begin{equation}
+   \ket{\psi_1} = \sum_{\mathbf{z} \in \Lambda_t \cap K} \rho_R(\mathbf{z})\ket{\mathbf{z}})
+\end{equation}
+This represents a gaussian shifted with respect to the representative $t$.
+
+Now, suppose we have the the state $\psi_2$, where
+\begin{equation}
+   \ket{\psi_2} = \sum_{\mathbf{z} \in \mathbb{Z}^d_D} \rho_R((\mathbf{z} + D\mathbf{v}) \cap \Lambda_t) \ket{\mathbf{z}}
+\end{equation}
+for any $\mathbf{v} \in \mathbb{Z^d}$. Essentially this describes a state where the gaussian wraps around modulo D, instead of containing shifted exponents. Considering our quantum registers will hold strictly positive values, $\psi_2$ is essentially the state the system will be in.
+
+Both $\psi_1$ and $\psi_2$ have 0 amplitude for non-$\Lambda_t$ vectors, and then assign amplitudes to vectors with coordinates in their respective sets. For $\psi_1$, the amplitudes are based on vector length (which is generally what we desire), while for $\psi_2$ they are based on how large the coordinates are, up to a limit of D, where they wrap back around. This shows us that those states are very similar, up to how many large vectors with coordinates that aren't necessarily close to $D$ each coset has. Evidently this scales with the number of dimensions - the more entries in the vector, the more coordinate partitions exist that sum up to large lengths. Regev proves with Claim A.5 that $$\lVert\ket{\psi_1} - \ket{\psi_2} \rVert \leq 2^{1-d}$$
+
+This tells us that for large values of $d$, these states are basically the same in terms of probability amplitudes, and so any transformation will the same result whether we apply it to one or the other.\\
+Lastly, define the Quantum Fourier Transform (QFT) over $\mathbb{Z}^d_D$, applied on some quantum state $\ket{x}$, is as follows:
+\begin{equation}
+    \ket{\mathbf{x}} \mapsto \frac{1}{\sqrt{D^d}} \sum_{\mathbf{y} \in \mathbb{Z}^d_D} e^{2\pi i \langle \mathbf{x,y} \rangle /D} \ket{\mathbf{y}}
+\end{equation}
+
+Let us now finally apply the operator from \textbf{Eq 8.4} to \textbf{Eq 8.2}. This results in the following state $\ket{\psi'}$, where
+$$\ket{\psi'} = \frac{1}{\sqrt{D^d}} \sum_{\mathbf{y} \in \mathbb{Z}^d_D} \sum_{\mathbf{z} \in \Lambda_t \cap K} \rho_R(\mathbf{z}) e^{2\pi i \langle \mathbf{z},\mathbf{y} \rangle / D} \ket{\mathbf{y}}$$
+
+Instead of writing the previous equation like that, note that since $\mathbf{z} \in \Lambda_t$, every $\mathbf{z}$ can be written as $\mathbf{z}_\Lambda + \mathbf{t}$ for some vector $\mathbf{z}_\Lambda$ in $\Lambda$. Now, by linearity of the inner product, we can write $$\langle \mathbf{z},\mathbf{y} \rangle = \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle + \langle \mathbf{t},\mathbf{y} \rangle$$ 
+
+Here we should remind the reader that the measurement probability of a specific vector is equal to the magnitude of the square of the amplitude of said vector in the state, so $\lvert A^2(\mathbf{y})\rvert$ for some vector $\mathbf{y}$. Combining all of these, the amplitude $A(\mathbf{y})$ for any $\mathbf{y}$ in the state $\ket{\psi'}$ is
+\begin{equation}
+    A(\mathbf{y}) = \frac{e^\frac{{2\pi i \langle \mathbf{t},\mathbf{y}} \rangle}{D}}{\sqrt{D^d}} \sum_{\mathbf{z}_\Lambda \in \Lambda \cap K - \mathbf{t}} \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) e^{2\pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D} 
+\end{equation}
+
+Suppose some vector $\mathbf{w} = \mathbf{y} / D$. By the definition of the inner product,  $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer if and only if $\langle \mathbf{z}_\Lambda,\mathbf{w} \rangle$ is also an integer. The second statement is just the definition of a dual lattice vector. To show that these vectors will also by definition be measured the most often by observing that the amplitude is maximal when $exp(2 \pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D)$ is 1 across all inputs, since the gaussian is independent of $\mathbf{y}$. This is equivalent to the sum only containing vectors with amplitude 1. It is easy to see that this only happens when $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer.\\
+
+Now, regarding \textbf{Eq 8.5}, note that the constant global phase outside the sum doesn't affect the measurement probability because it represents a vector of length 1 whose phase depends on $\mathbf{y}$ (and hence squares to 1), and the denominator $\sqrt{D^d}$ is the same for all $\mathbf{y}$. It turns out that if $\lVert \mathbf{t} \rVert <<R$, then the mean of the gaussian isn't affected much and we have $$ \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) \approx \rho_R(\mathbf{z}_\Lambda)$$ This is precisely why we centered our gaussian at 0: now the smallest vectors will have the biggest weights.\\
+
+Combining the two facts above, we get that $\lvert A^2(\mathbf{y}) \rvert$ is maximal for short vectors of the dual lattice. In fact, the smaller $R$ 
+(the standard deviation) is, the shorter our vectors will end up being. It can't be too small though, else we might outweigh the exponential factor and get non-dual lattice vectors, purely because they are short. We will therefore be tuning $R$ - Regev \cite{Regev2025} claims that a value $R>\sqrt{2d}$ guarantees with almost certainty that we get dual lattice vectors, and specifically recommends using $R = e^{Cd}$ for some constant C.\\
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

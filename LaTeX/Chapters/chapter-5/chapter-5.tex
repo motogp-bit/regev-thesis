@@ -1,0 +1,76 @@
+\chapter{Regev's assumption from number theory}
+
+Regev's algorithm and its speedup crucially relies on a specific number theoretic assumption regarding products of prime numbers modulo N. Our overview could be considered complete without even remotely approaching this specific detail, however we chose to bore the reader with more abstract mathematics in the hopes that he stops reading the paper before he reads anything of real significance.\\
+
+
+Now, let $b_1,b_2,\dots ,b_d$, be the first $d$ primes in order. Let $X$ be defined as follows
+\begin{equation}
+    X \equiv b_1^{z_1}b_2^{z_2}\dots b_d^{z_d} \pmod n = \prod_{i=1}^d b_i ^{z_i} \pmod n
+\end{equation}
+
+for some $z_i \in \mathbb{Z}$. Suppose $\mathbf{z} = (z_1,z_2,\dots,z_d)$ is a vector in $\mathbb{Z}^d$. The set of all vectors $\mathbf{z}$ satisfying the modular multiplicative congruence $X^2 \equiv 1 \pmod N$ form a lattice which we will call $\mathit \Lambda$ \footnote{The square can be transferred to the bases to construct an equation reminiscent of \textbf{Eq 5.4}}. Furthermore, a sublattice of $\mathit \Lambda$ can be constructed by the set of all vectors $\mathbf{z}$ which satisfy the congruence $X = \pm 1 \pmod n$. We will call that sublattice $\mathit \Lambda_0$, and denote by $\mathit{\Lambda / \Lambda_0}$ the set of vectors that are in $\mathit \Lambda$ but not $\mathit \Lambda_0$. 
+
+It is easy to see that finding a vector in $\mathit{\Lambda / \Lambda_0}$ is equivalent to finding a non-trivial factor of $N$. This is because $N$ will then divide the product $(X-1)(X+1)$ but will not divide either of the terms, and therefore, as explained in Chapter 1, computing $\gcd(X-1,N)$ gives us the nontrivial factor. A consequence of the Chinese Remainder Theorem is that for a number with $k$ distinct prime factors, there are $2^{k}$ possible solutions to the congruence for $\mathit \Lambda$. In our case, this means that there are 4 possible solutions. The congruence for $\mathit \Lambda_0$ will obviously only have 2 solutions regardless of $k$. This means that half of our solutions are trivial! To avoid trivial solutions, Regev’s algorithm requires the existence of a vector $\mathbf{z}$ where \footnote{For an explanation regarding this bound, go to the end of Chapter 9}. 
+
+\begin{equation}
+    \lVert \mathbf{z} \rVert \leq 2^{O(d)}
+\end{equation}
+
+
+At the time of the original paper's publication, however, the only guarantee that a sufficiently small vector would exist is a result found in the following paper \cite{LamzouriLiSoundararajan2015}.
+
+\textbf{Lemma 6.1}: A vector satisfying \textbf{Eq 6.2} can be guaranteed to exist if the following upper bound holds
+\begin{equation}
+    n(p) < (logp)^2
+\end{equation}
+
+where $n(p)$ denotes the least quadratic non-residue modulo $p$ ($p$ and $q$ are N's factors).
+
+The above result, however, is dependent on the unproven Generalized Riemann Hypothesis \footnote{In fact, it is an expansion of an old classical result that states $n(p) < C(logp)^2$}, and hence the algorithm isn't really proven correct in the mathematical sense but rather heuristically conjectured to be working. Regev is satisfied with this heuristic result most likely due to the fact that most mathematicians regard GRH to be true. Let us briefly explain the connection between quadratic non-residues and non-trivial factors.
+
+A  \textbf{Quadratic Residue} (or QR) modulo $N$ is defined as some number $y$ that is congruent to a perfect square modulo $N$, i.e. there exists $x$ such that $x^2 \equiv y \pmod N$. By the chinese remainder theorem,this is equivalent to y being a QR modulo p \textbf{and} modulo q. A number that is not a QR is called a QNR, or Quadratic Non-Residue. Keeping the earlier notation $n(p)$ for the least QNR, let us state some facts for QRs and QNRs in our problem:
+
+\textbf{Fact 1}. $n(p)$ is always prime, regardless of whether p is prime or not.\footnote{If $n(p) = ab$ with $1 < a,b < n(p)$, then a and b have to be QRs, but then $n(p)$ is also a QR, so it cant be the least QNR}\\
+\textbf{Fact 2}. If $y$ is a QNR mod p, then it is also a QNR mod N.\\
+\textbf{Fact 3}. If all $b_i$ are QRs, then X is also a QR.
+
+
+By factoring the congruence $X^2 \equiv 1 \pmod N$ as $(X-1)(X+1) \equiv 0 \pmod N$ we can see that for any $N = p \cdot q$, there are exactly 4 cases that produce a vector in $\mathit \Lambda$. These are as follows.
+
+1. $X \equiv 1 \pmod p$ and $X \equiv 1 \pmod q$ (by CRT,$X \equiv 1 \pmod N$)\\
+2. $X \equiv -1 \pmod p$ and $X \equiv -1 \pmod q$ (by CRT,$X \equiv -1 \pmod N$)\\
+3. $X \equiv -1 \pmod p$ and $X \equiv 1 \pmod q$\\
+4. $X \equiv 1 \pmod p$ and $X \equiv -1 \pmod q$\\
+
+Consider the equation $$X^2 \equiv 1 \pmod N \iff (X-1)(X+1) = k \cdot N = k \cdot p \cdot q$$ for some $k \in \mathbb{Z}$. In case 1, $X-1$ is some multiple of $N$ and therefore $\gcd(X-1,N) = N$. This means that the only possible cases that produce a nontrivial result need X to be -1 modulo at least one of p and q. \nopagebreak\footnote{Case 2 also doesn't produce a nontrivial result. To see this, remember that the gcd algorithm would involve computing $\gcd(X-1 \pmod N,N)$. For $X \equiv -1 \pmod N$, this is the GCD of -2 and N, which is 1 because we initially assumed that N is odd.}
+
+However, if $p \equiv 3 \pmod 4$ and $q \equiv 3 \pmod 4$ and X is a QR, then X cannot be -1 modulo either prime. This is because, under these conditions, -1 is a QNR modulo both $p$ and $q$ \footnote{This proof is based on Legendre symbols, which we encourage the reader to research on their own.}. Then the only possible case is case 1, in which case the algorithm will fail. \\
+Since we cannot know the congruence class of $p$ and $q$ beforehand, we need to guarantee that X is a QNR. Remember that according to fact 1, the least QNR is prime. Therefore if all our primes are  $< n(p)$, they have to all be QRs modulo p (and hence also QRs modulo N, according to fact 2), which makes X a QR and thus the algorithm will fail given $p \equiv 3 \pmod 4$ and $q \equiv 3 \pmod 4$.
+
+This means that assuming GRH, combining the bound from \textbf{Eq 6.2} and the inequality $p \leq \sqrt{N}$, we get $$n(p) < \frac{(logN)^2}{4}$$
+
+
+In a followup paper, Cedric Pilatte\cite{Pilatte2024}, using a technique based on zero-density estimates for Dirichlet characters modulo $N$ (the mathematics are beyond the scope of this thesis), proved the following result:
+
+\textbf{Lemma 6.2 (Pilatte)}:
+Given $b_1,b_2,\dots,b_d$ independent and identically distributed random variables, each uniformly distributed in the set of primes $\leq d^{10^{3}d}$ where $d = \lceil\sqrt{logN} \rceil$, every $x \in \langle b_1,b_2,...,b_d\rangle $ (that is, the span of the $b_i$ as a vector) can be expressed with high probability as
+
+\begin{equation}
+    x \equiv \prod_{i=1}^d b_i^{z_i} 
+\end{equation}
+for some integers $z_i$ with $\lvert z_i\rvert \leq 2^{O(d)}$ for all $1\leq i \leq d$.
+
+This, however, places a very large upper bound on the primes, which affects gate complexity severely for any practical applications. Further results need to be produced to guarantee practical functionality.\\
+
+From what we said it is implied that, generally, if X is a QR, the algorithm fails. The reader might therefore wonder regarding the probability of the algorithm's success. As we established, half of the possible solutions are trivial. However, provided our algorithm is much more likely to produce shorter vectors (hence the bound $\lVert \mathbf{z} \rVert \leq 2^{O(d)}$ from earlier), it is also much more likely to produce non-trivial solutions. Lastly, in regards to producing non-trivial solutions, let us state the following lemma
+
+\textbf{Lemma 6.3 (Pomerance's theorem)}:
+Suppose $G$ is a finite abelian group with minimal number of generators
+$r$. Then, when choosing elements from G independently and uniformly, the \textit{expected} number of
+elements needed to generate G is less than $r + \sigma$, where $\sigma \approx 2.118$. 
+
+This implies that $r+4$ elements are enough to generate $G$ with probability 1/2. This means that we necessarily need to have $\geq r+4$ samples. We will use this theorem in the LLL chapter in order to improve our odds.
+
+
+
+

@@ -1,0 +1,41 @@
+\chapter{Quantum subroutine}
+
+The quantum part of Shor's algorithm addresses the following problem:
+Given $a$ and $N$ where $a<N$, $\gcd(a,N) = 1$, and $N$ is an odd number that isn't a prime power, find the multiplicative order of $a$ modulo N.
+To solve this problem, Shor uses a variant of the quantum phase estimation algorithm which we will describe extensively below.\\
+
+First,we need to initialize 2 quantum registers.
+
+1.The \emph{exponent register}, with size is $n$ qubits.\footnote{In practice, it is optimal for the QFT to use a superposition over some number $Q$ with $Q\approx N^2$,and an exponent register of $2n$. Otherwise, it is possible that several QFT peaks map to the same ratio in the continuous fraction, which increases the number of attempts required to determine $r$. However, optimizations have been made - see Chapter 4 for complexity.}\\
+2.The \emph{function register}, with size $n$ qubits
+
+First,we apply Hadamard gates to every qubit. This achieves the following superposition
+\begin{equation}
+    \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} \ket{x} \ket{0}
+\end{equation}
+
+Afterwards,we perform modular exponentiation on the superposition, and store the result in the function register. The following quantum operation is therefore performed on the function register:
+\begin{equation}
+    \ket{x} \ket{0} \mapsto \ket{x} \ket{a^x \mod N}
+\end{equation}
+
+ Note that this means that each exponent register qubit $\ket{x}$ is entangled with a function register qubit $\ket{a^x \mod N}$. This means that the period information is now encoded in the exponent registers. Also note that some exponent registers will contain the same values. Specifically, for every register $x_i$ and for each possible value $y_i = a^{x_i} \pmod N$, if we assume that $x_0$ is the smallest number that satisfies that equation for a given $y_0$ ,then it is also satisfied by $x_0 + r,x_0 + 2r\dots$ , up to a total of $M$ numbers (including $x_0$), where $M = \lfloor(N-x_0-1)/r \rfloor$. Therefore, the exponent registers are in the following superposition:
+ 
+ \begin{equation}
+    \ket{\psi} = \frac{1}{\sqrt{M}} \sum_{x=0}^{M-1} \ket{x_0 + kr} 
+\end{equation}
+
+Now, the QFT on $N$ elements is defined as the following operation:
+
+ \begin{equation}
+    \ket{x} \mapsto\frac{1}{\sqrt{N}} \sum_{y=0}^{N-1} e^{2\pi ixy/N}\ket{y} 
+\end{equation}
+
+The next step is to apply QFT on the exponent registers in state $\psi$, giving the following state:
+\begin{equation}
+    \ket{\psi'} =  \frac{1}{\sqrt{MN}} \sum_{y=0}^{N-1} (\sum_{k=0}^{M-1} e^{2\pi ikry/N})e^{2\pi ix_0y/N}\ket{y} 
+\end{equation}
+
+The amplitude of $y$ is a geometric series. If we substitute the equation for the geometric sum of the inner series,we find that the sum is maximal when $1 - e^{2\pi iry/N}\approx 0 \implies e^{2\pi iry/N} \approx 1 \implies y \approx jN/r $ for $j = 0,1\dots r-1$\footnote{This should be a fairly intuitive explanation for the 1-dimensional case. The n-dimensional case is explored and analyzed further in the QFT chapter.}. Therefore the measurement is  more likely to measure a multiple of $N/r$, from which then $r$ is extracted using continuous fractions \footnote{Ekera-Hastad \cite{EkeraHastad2017} made enormous improvements on Shor's original way of computing continuous fractions. However, this process is not relevant to Regev's algorithm, and as such will not be examined thoroughly in this paper.}.
+
+

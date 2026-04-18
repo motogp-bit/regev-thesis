@@ -1,0 +1,22 @@
+\chapter{Shor's complexity}
+
+The complexity of the quantum subroutine is the bottleneck of the algorithm. Ekera-Hastad's \cite{EkeraHastad2017} variant of Shor requires $n + O(log_2n) = O(n)$ qubits for the exponent register.
+
+Now,we have $O(n)$ qubits for the exponent register, another $O(n)$ for the function register \cite{Shor1997}, and $O(n)$ ancilla qubits for the modular exponentiation,addition and multiplication \cite{Roetteler2017}. That gives us a total of $O(3n) = O(n)$ qubits.
+
+In terms of gate complexity, we need to perform approximately $O(n)$ multiplications that can be performed in $O(n\cdot poly(logn))$ gates \cite{Regev2025} using Schonhage-Strassen fast integer multiplication, for a total of $O(n^2 \cdot poly(logn))$ gates. QFT with approximations requires $O(nlogn)$ gates \cite{NamSuMaslov2020},and the continued fractions step requires approximately $O(n^2)$ classical bit operations\cite{AdamczewskiBugeaud2005}. The dominant term is of course $O(n^2 \cdot poly(logn))$ 
+
+Finally, recent analysis \cite{Ekera2021} has proven that once the order of a randomly chosen element of $(\mathbb{Z}/N\mathbb{Z})^*$ has been obtained, regardless of whether the order is odd or even, N can be recovered with very high probability\footnote{The only point of concern is trivial values for $r$, but the probability of finding one of these tends to 0 as N tends to infinity, so for large values this probability is extremely low.} using classical post-processing. Odd orders affect the runtime,but the asymptotic complexity remains the same.
+
+In conclusion,we have:\\
+Gate complexity: $O(n^2 \cdot poly(logn))$\\
+Qubit complexity: $O(n)$\\
+Independent runs: 1\\
+
+
+
+
+
+
+
+

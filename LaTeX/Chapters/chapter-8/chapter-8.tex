@@ -1,0 +1,107 @@
+\chapter{LLL}
+
+The final piece of mathematical theory we need to understand before we can analyze Regev's algorithm in a simple and coherent manner has to do with the Lenstra–Lenstra–Lovász algorithm,or LLL for short\footnote{This is not a mistake,the name really refers to two people named Lenstra. Unfortunately,they are brothers.}. In reality, the original paper dealt with factoring polynomials with rational coefficients in polynomial time, however the technique developed essentially converts polynomial factorization into a lattice problem. Before we explain the problem, it is best if we briefly go through the Gram-Schmidt orthogonalization process.
+
+The classical Gram-Schmidt process is defined as an algorithm that performs the following operation:\\
+Given a finite, linearly independent set of vectors $$\mathbf{S} = \{ \mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k \}$$
+that span some k-dimensional subspace of $\mathbb{R}^n$ with $k\leq n$, Gram-Schmidt outputs a set 
+$$\mathbf{S'} = \{ \mathbf{u}_1, \mathbf{u}_2, \dots, \mathbf{u}_k \}$$
+such that all $u_i$ are orthogonal to each other and $span(S) = span(S')$.\\
+Now, let the Gram-Schmidt coefficients $\mu_{i,j}$ be equal the following ratio:
+$$
+\mu_{i,j} = \frac{\langle v_i, u_j \rangle}{\langle u_j, u_j \rangle}
+$$
+
+Then the steps for Gram-Schmidt are as follows:\\
+1.$\mathbf{u}_1 \coloneqq \mathbf{v}_1$\\
+2.For all $i$ with $2\leq i \leq k$:\\
+3.Compute $\mu_{i,j}$ for j from 1 up to $i - 1$\\
+4.$\mathbf{u}_i \coloneqq \mathbf{v}_i - \sum_{j = 1}^{i-1} \mu_{i,j} \mathbf{u}_i$\\
+5.End the loop and return the $\mathbf{u_i}$
+
+
+Now, we are ready to describe what LLL does. Firstly, we define an LLL-reduced basis as so:\\
+
+\textbf{Definition 9.1 (LLL-reduced basis)}: Given a basis $$\mathbf{B} = \{ \mathbf{b}_1, \mathbf{b}_2, \dots, \mathbf{b}_d \}$$
+denote $\mathbf{B}' = \{ \mathbf{b}'_1, \mathbf{b}'_2, \dots, \mathbf{b}'_d \}$ as the basis that is produced by applying the Gram-Schmidt process on $\mathbf{B}$,and $\mu_{i,j}$ as the associated Gram-Schmidt coefficients. Then, the basis is LLL-reduced if there exists parameter $\delta \in (1/4,1]$ such that:\\
+
+1.$\lvert\mu_{i,j}\rvert \leq 1/2$ for $1\leq i < j \leq d$ \\
+2.$\delta \lVert \mathbf{b'}_{k-1}\rVert^2 \leq \lVert \mathbf{b}_{k}'\rVert^2 + \mu_{k,k-1}^2 \lVert \mathbf{b}_{k-1}'\rVert^2$ for $2\leq k \leq d$, the \textbf{Lovasz condition}.
+
+In practice, bigger values of $\delta$ correspond to more orthogonal bases, but a longer algorithm. $\delta$ will therefore be a tunable parameter that will tell us how well the basis has been reduced. $\delta = 1$ corresponds to the shortest possible basis, but polynomial time complexity is guaranteed only when $\delta < 1$. We will be setting the parameter $\delta = 3/4$, as suggested by the authors of the LLL paper.
+
+The LLL algorithm aims to compute an LLL-reduced basis that is more orthogonal than the input and nearly as short as possible with respect to Euclidean length, while still spanning the same lattice.\\ 
+Below we describe LLL.
+
+\begin{algorithm}
+\caption{$\delta$-LLL Algorithm}
+\textbf{Input:} Lattice basis $\mathbf{B} = \{\mathbf{b}_1, \mathbf{b}_2, \dots, \mathbf{b}_d\}$, parameter $\delta \in (1/4,1)$ \\
+\textbf{Output:} $\delta$-LLL reduced basis
+\begin{algorithmic}[1]
+\State Compute $\mathbf{B}' = \{\mathbf{b}_1', \mathbf{b}_2', \dots, \mathbf{b}_d'\}$ and coefficients $\mu_{i,j} = \frac{\langle \mathbf{b}_i,\mathbf{b}_j' \rangle}{\langle \mathbf{b}_j',\mathbf{b}_j' \rangle}$
+\State $k \gets 2$
+\While{$k \le d$}
+    \For{$j = k-1$ to $1$}
+            \If{$\lvert \mu_{k,j} \rvert > 1/2$}
+                \State $m \gets \text{round}(\mu_{k,j})$\footnote{In order to stay in the lattice,we need every new vector to be some integer combination of the basis vectors.That can only happen if $\mu$ itself is an integer,therefore we round it to the closest integer.}
+                \State $\mathbf{b}_k \gets \mathbf{b}_k - m \, \mathbf{b}_j$
+                \State Repeat step 1 for the new values,updating $\mathbf{B}'$ and $\mu_{i,j}$
+            \EndIf
+    \EndFor
+    \If{$\|\mathbf{b}_k' + \mu_{k,k-1} \mathbf{b}_{k-1}'\|^2 \ge \delta \, \|\mathbf{b}_{k-1}'\|^2$}
+        \State $k \gets k + 1$
+    \Else
+        \State Swap $\mathbf{b}_k$ and $\mathbf{b}_{k-1}$
+        \State $k \gets \max(k-1,2)$
+        \State Recompute $\mathbf{b}_i^*$ for $i = k,k+1,\dots ,d$ and $\mu_{i,j}$ for $j<i$
+    \EndIf
+\EndWhile
+\State \Return $\mathbf{B}_{LLL} = \{\mathbf{b}_1, \mathbf{b}_2, \dots, \mathbf{b}_d\}$
+\end{algorithmic}
+\end{algorithm}
+
+Essentially, LLL does two things repeatedly:
+\\
+1.Reduces the \textbf{size} of each basis vector by removing unnecessary components along earlier ones,until the $\mu$ factor is sufficiently small.\\
+2. Reorders the vectors so shorter vectors appear earlier.
+
+We can think of step 7 as essentially subtracting all projections of the $k$-th vector onto previous vectors, therefore attempting to minimize the component of $\mathbf{b}_k$ along the direction of a previous vector. If the factor of that projection is smaller than 1/2, meaning the vector component of $\mathbf{b}_k$ along a given direction that already includes a vector in the basis is less than 1/2, then this is considered sufficient.
+
+
+Now,to understand why the actual algorithm works, let us consider a quantity which we will call the potential function $D(d)$. It is defined as $$D(d) = \prod_{i=1}^d \lVert \mathbf{b}_i' \rVert^{2(d-i-1)}$$.
+
+$Vol(\Lambda)$ as the \textbf{volume} of the lattice $\Lambda$. The volume of a lattice refers to a quantity that measures the density of the lattice points in space,and is defined as 
+\begin{equation}
+    Vol(\Lambda) = \sqrt{det(B^T B)}
+\end{equation}
+where B is the $n \times d$ whose columns are the $\mathbf{b}_i$.
+For full rank lattices where B is a $n \times n$ matrix, $Vol(\Lambda)$ is \textbf{equivalent to the determinant of B $det(B)$}.\\
+We will not demonstrate the proof here,but an equivalent definition for $Vol(\Lambda)$ is the following:
+\begin{equation}
+    Vol(\Lambda) = \prod_{i=1}^d \lVert \mathbf{b}_i' \rVert
+\end{equation}
+It should be noted that an interpretation of the 2-D determinant is that it represents the area of the parallelogram formed by the basis vectors.In n dimensions,the parallelogram becomes a parallelepiped formed by the n basis vectors,and area corresponds to volume.
+
+Suppose we restrict 8.2 to being the product of only $j$ terms, with $j < d$. Then let $Vol_j(\Lambda)$ be the volume of the parallelepiped formed by the first j basis vectors.
+
+This means that the i-th term in the $D(d)$ product essentially represents the product squared volumes of the parallelepipeds formed by the first i basis vectors, so $(Vol_i(\Lambda))^2$. The value for the exponent is simply a weight with respect to the order of the vectors: earlier vectors and their parallelepipeds affect the value more.
+
+LLL's termination condition is when the vectors are in ascending order of size,and every 2 consecutive vectors satisfy the Lovasz condition. If the orthogonal component of a given vector is smaller than the one of the previous vector,the vectors are swapped and we recompute their orthogonal components. We can prove that this action,together with the Lovasz condition,guarantee a decrease of the potential function after every swap. Eventually however, after finitely many swaps, $D(d)$ will hit a local minimum, as there will be no further swaps to be made.This is when the algorithm terminates, producing a sufficiently small basis for $\Lambda$.
+
+We will now describe a very important bound for the LLL basis that have been proven to hold.\\ 
+Let $\mathbf{b}_1$ be the first (and therefore shortest) vector in the LLL basis.
+Also let $m(\Lambda)$ be the length of the smallest nonzero vector of $\Lambda$. In mathematical terms, $$m(\Lambda) = min\set{\lVert \mathbf{x} \rVert ^2 \: s.t. \mathbf{x} \in \Lambda, \mathbf{x} \neq \mathbf{0}}$$ Then, the following bound holds:
+
+\begin{equation}
+    \lVert \mathbf{b}_1 \rVert \leq 2^{(d-1)/2} \lVert m(\Lambda)\rVert \\
+\end{equation}
+
+This essentially states the first vector is not much larger than the shortest vector of the lattice. This is important because the reason we are using LLL in our larger scheme is not to get a LLL-reduced basis, but rather to solve SVP to some approximation factor. By taking every vector in the LLL-reduced basis that satisfies our bound, LLL inadvertedly provides a polynomial-time solution to this problem.
+
+It should be mentioned that LLL's complexity is approximately $O(d^5 log^3((max (\lVert v_i \rVert))$. For this reason, we prefer inputting shorter vectors into $LLL$. One got therefore get a sense of the steps we will be performing in Regev's algorithm by immediately thinking back to the gaussian in the previous chapter and how it increased the probability of shorter vectors.
+
+Lastly, we need to explain why we are even trying to find a reduced basis in the first place. In chapter 6, we talked about "making sure the vectors are as short as possible". Let us forget the modular world for a second - after all, LLL tries to minimize the size of the vectors, not the size of the product. Consider the equations $X \equiv 1 \pmod N$ This is equivalent to saying $$X = mN + 1$$ for some $m \in \mathbb{Z}$. This equation is minimized at $\lvert m \rvert = 1$ ($m = 0$ would correspond to the zero vector, but LLL by definition only finds non-zero vectors). The smallest possible values for the trivial solutions therefore correspond to the values $\lvert X\rvert  = N+1 $ and $\lvert X \rvert = N - 1$. On the contrary, the non-trivial solutions satisfy the equation $$X^2 = mN + 1$$ The smallest possible values for the non-trivial solutions correspond to some value $X \approx \sqrt{N}$.  Since the bases stay constant, the value of $X$ depends on how short the exponent vector is. This means that shorter exponent vectors are more likely to correspond to non-trivial solutions. In fact, the bound Regev talks about, e.e. $\lVert \mathbf{z} \rVert \leq 2^{O(d)}$ is directly derived from the bound in \textbf{Eq 9.3}. Evidently, assuming we construct the right lattice to account for noise, we can run LLL on it to get our desired result.
+
+
+
+

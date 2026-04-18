@@ -1,0 +1,72 @@
+\chapter{Regev optimizations: Spooky pebbling}
+
+Whilst Fibonacci exponentiation does provide somewhat of a solution in a qubit-scarce environment and guarantees asymptotically better results, experiments seem to suggest that the prefactors dominate the expression for practical uses as demonstrated in \cite{KahanamokuMeyerRagavanVaikuntanathan2024} (which also happens to be the paper detailing the idea we will talk about in this chapter), such as factoring RSA numbers. For our final theoretical chapter, we will present an idea based on a technique called "spooky pebbling" that promises to finally transform Regev into an advantageous solution for factoring large numbers.
+
+First,let us describe what a pebble game is, and its relation to quantum computing:\\
+Suppose we have a directed acyclic graph, in which each node represents an intermediate value. In every step, we can perform two operations on that graph:
+
+1.Pebble: Place a pebble on any given set of nodes, provided all of their parents have pebbles. This corresponds to computing some value.\\
+2.Unpebble: You can remove a pebble from a set of nodes. This corresponds to uncomputing a value, or emptying certain registers.\\
+
+The goal of the game is to go from the initial no pebble state to the state where all outputs nodes have pebbles while minimizing amount of operations (number of times you pebbled/ unpebbled) and space (maximum number of pebbles currently present on the graph). As we mentioned in the previous chapter, quantum operations need to be reversible. This means that in order to correspond a quantum circuit to a pebble game, we need to add the restriction that you can only unpebble when all parent nodes of every node we are unpebbling have a pebble.
+
+Let us now think of nodes as qubit registers.In a normal quantum circuit, qubit registers containing information need to be cleaned when they dont need to be used anymore for two reasons. Firstly, due to entanglement, it is possible they contain information that affects the final output. Secondly, qubits are expensive, and therefore reusing qubits is essential to quantum computations. Fortunately, the way quantum circuits are designed (unitary gates), every operation is reversible. This, means however, that we need to essentially run the gates in the circuit twice to "unpebble" the registers, in order to make sure the qubits are empty when we do our final measurement.
+
+To resolve this issue, let us define a third operation,called "Ghosting". Given a register x, "Ghosting" corresponds to measuring a register in the Hadamard basis e.e. measuring after applying a Hadamard gate. A Hadamard gate on the parent disentangles the parent from the child, meaning the superposition of the child stays intact even after the measurement. This process, though,  isn't entirely clean.For a $\ket{+}$ measurement (0), everything works as normal. However, if we measure $\ket{-}$ (1), that means a relative phase of -1, or 180 degrees, has been added to the child registers. In other words, we get the following state transition:
+\begin{equation}
+    \sum \ket{x} \mapsto \sum -1^{f(x)} \ket{x}
+\end{equation}
+for some function $f(x)$ related to the information held in the measured qubit. We can however unghost by simply applying a Z gate to the child register whenever we measure a 1, since a Z gate shifts the phase by 180 degrees.
+
+The most important advantage to doing this, is that the qubit is now truly free to reuse, and the information it was carrying is now simply passed onto the results in other qubits through an already well-known process in quantum algorithms known as phase kickback. Furthermore, contrary to unpebbling, ghosting can actually be done in parallel. In order to unpebble a parent, you must first unpebble its child, making this a process that takes multiple time steps. You can, however, ghost multiple nodes at once, since the information transfers immediately through entanglement.
+
+Now, let us assume that for our problem, we are trying to compute $H^l(x)$ for some function $H$. We define "blasting" as a procedure where, starting from an initial state with pebbles, we march all the way to position $l$, placing pebbles along the way. We will further define "unblasting" as ghosting a certain amount of qubit registers.
+
+We will also call the total number of steps we will take in the game to reach an output node the "pebbling depth", and we will subdivide our computations into "windows" of blasting. Those windows will depend on certain "marker pebbles" we will be leaving behind in strategic positions, in order to make the blasting and unblasting process more efficient. Those markers will tell us how many qubits we should unblast every time. An important thing to note is that it is also not necessary to remove the marker every time. It could also be optimal to leave a marker intact after unblasting its children and remove it later.This lets us keep markers on certain useful values (say, perhaps, the powers of 2 in a binary representation).
+
+
+In terms of quantum circuits, our objective is to minimize the pebbling depth (number of operations) given a fixed amount of pebbling space (qubit registers). This is important because, evidently, the optimal marker placement given infinite pebbling space is the binary representation of $l$. However, with our fixed number of qubits, this isn't necessarily the case, since we will not always have enough qubits to cover every logarithmic window -in fact, in this case we would be using way more qubits than necessary.
+
+Finally, note that most of what we described is not necessarily restricted to a line. In fact, since the Regev product necessitates computing powers of multiple bases, this approach is even more efficient, since we can parallelize our operations across an entire graph of powers, and apply markers in the most optimal positions. To find those positions, we can simply apply a variation of the $A^*$ search algorithm in a graph consisting of all the bases and their powers, and blast/unblast multiple pebbles accordingly.
+
+Because $A^*$ optimizes for a given maximum space, it is impossible to run out of qubits during parallelization. Hence, we can keep blasting and unblasting according to the optimal strategy decided by $A^*$, and even parallelize the operations when they don't interfere with each other. This parallelization across the powers is what makes the algorithm extremely fast. Furthermore, keep in mind that the markers, besides telling us how far back we need to unblast, can also help in keeping track of the phase changes for the final gate. Finally, all of this implies that the only time we'll actually use the expensive Unpebble operation will be when uncomputing markers or the final result.
+
+We will mostly concern ourselves here with how spooky pebbling relates to Regev. The optimal strategy for the pebbling game, including the blasting and unblasting subroutines, can be found in pages 13 and 14 as Algorithms 2.1,2.2 and 2.3 of \cite{KahanamokuMeyerRagavanVaikuntanathan2024}, while section B in page 36 describes the logic behind applying $A^*$ and its heuristic. All we need to describe here is how pebbling and unpebbling works in terms of our computations. Now, at last, let us describe the application of spooky pebbling to computing a Regev product\\
+
+\begin{algorithm}
+\caption{Pebble(i)}
+\textbf{Input:} $b,N$, window size $w$, pebble index $i$,quantum registers $e$ consisting of a superposition of $e_j$,$in$ and $out$ \\
+\textbf{Output:} $out = y_i$, all other registers unchanged
+\begin{algorithmic}[1]
+\State $in \gets y_{i-1}$,$out \gets 0$
+\If{$i \not\equiv 1 \pmod{w+1}$}
+    \State $out \gets in^2 \pmod N$
+\Else
+    \State Compute $i' = (i-1)w/(w+1)$
+    \State $p = \prod_j b_j^{e_j(i'..i'+w)}$ where $e_j( i'..i'+w)$ denotes the integer formed by taking the bits of $e_j$ starting from $i'$ and ending at $i'+w$
+    \State $out \gets in \cdot p \pmod N$
+    \State $Ghost(p)$
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{Unpebble(i)}
+\textbf{Input:} $b,N$, window size $w$, pebble index $i$,quantum registers $e$ consisting of a superposition of $e_j$,$in$ and $out$ \\
+\textbf{Output:} $out = 0$, all other registers unchanged, all intermediate ghosts removed
+\begin{algorithmic}[1]
+\State $in \gets y_{i-1}$,$out \gets y_i$
+\If{$i \not\equiv 1 \pmod{w+1}$}
+    \State $out \gets out -in^2 \pmod N$
+\Else
+    \State Compute $i' = (i-1)w/(w+1)$
+    \State $p = \prod_j b_j^{e_j(i'..i'+w)}$ where $e_j( i'..i'+w)$ denotes the integer formed by taking the bits of $e_j$ starting from $i'$ and ending at $i'+w$
+    \State $out \gets out -in \cdot p \pmod N$
+    \State $Unghost(p)$
+    \State $p \gets p - \prod_j b_j^{e_j(i'..i'+w)}\prod_j$
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+The complexity depends upon the length of the chain. In theory, that should be proportional to the number of exponents $e_i$ times the bits per exponent. Given how we guarantee $\lvert e_i \rvert \leq 2^{O(d)}$, we have $O(d)$ exponent size. This means that $l = O(d^2)$. If the optimal value for $d$ is $\sqrt{n}$, this puts $l = O(n)$, so we can replace $l$ with $n$ in the complexity calculations given in the paper. In practice though, ghosting isn't exactly noise robust, and we also need to account for the extra bits that will give us reliable lattice samples later. Heuristically, that implies $l \approx 1.5n$, giving us
+$O(logn)$ space, $O(3n) = O(n)$ gates, and optimal circuit depth due to parallelism. This has resulted in phenomenal improvements in practice , even managing to achieve half the circuit depth of optimized Shor according to the paper's authors.

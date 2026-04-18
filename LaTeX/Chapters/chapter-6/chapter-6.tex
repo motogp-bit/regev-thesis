@@ -1,0 +1,66 @@
+\chapter{Multiplication of small numbers}
+
+
+Regev further presents us with a potential efficient way we could compute the product $$X =\prod_{i=1}^d b_i^{e_i} \pmod N$$ To do this, he combines two ideas that stem from fast multiplication algorithms.
+
+$\mathbf{1}$.We can multiply $d$ small numbers using $O(d \cdot (logd)^k)$. Say we have e.g. the product $a_1a_2a_3a_4a_5a_6a_7a_8$. The naive way of computing it would be to multiply $a_1a_2$, then product $a_1a_2$ with $a_3$ and so on. This however, is painfully slow,since the first factor grows rapidly. Instead, it is much more efficient to do $$((a_1a_2)(a_3a_4))((a_5a_6)(a_7a_8))$$ in a binary tree fashion, since you are always multiplying small numbers with small numbers, and the only n bit numbers that are multiplied are near the end of the tree.
+
+$\mathbf{2}$.We can use a variation of the repeated squaring algorithm for modular exponentiation. Suppose we need to compute some large power $k$ of a small number $x$ modulo N where $N > 1$, so $x^k \pmod N$. Let for example $k = 13$. To compute $x^{13}$, we work as follows.
+
+$\mathbf{2.1}$ Define two classical registers. One will hold the base, and another will hold the running total. Initialize the base register to $x \pmod n$, and the running total to 1.\\
+$\mathbf{2.2}$ Find the binary representation of 13, which is $1101_2$. We will have as many steps as there are numbers in the binary representation, in this case 4.\\
+$\mathbf{2.3}$ Examining the digits \textbf{right to left}, do the following:\\
+$\mathbf{2.3.1}$ Look at the digit.If the digit is 1, we multiply the running total by the base register and store the result in the running total. If the digit is 0, we do nothing.\\ 
+$\mathbf{2.3.2}$ If this is the last digit,terminate the algorithm.\\
+$\mathbf{2.3.3}$ Square the base register.\\
+$\mathbf{2.3.4}$ Repeat from 2.3.1 until there are no more digits left.\\
+
+Below is pseudocode of the algorithm. 
+
+\begin{algorithm}
+\caption{Modular Exponentiation}
+\textbf{Input:} Integers $x,k,m$ \\
+\textbf{Output:} $x^k \pmod m$
+\begin{algorithmic}[1]
+\State $b \gets x \pmod m$
+\State $rt \gets 1$
+\While{$k > 0$}
+    \If {$k \equiv 1 \pmod 2$}
+        $rt \gets rt \cdot b \pmod m$
+    \EndIf
+    \State $k \gets k /2$ (integer division)
+    \If {$k = 0$}
+        \State \textbf{break;}
+    \EndIf
+    \State $b \gets (b \cdot b) \pmod m$
+\EndWhile
+\State \Return $rt$
+\end{algorithmic}
+\end{algorithm}
+
+This speeds up exponentiation modulo m from requiring $k-1$ multiplications in the naive case, to $O(logk)$. Now, let us combine the two ideas into an algorithm that efficiently computes $X$.\\ 
+
+We will describe the way the algorithm would compute a product like $a_1^{13} a_2^9 a_3^3 a_4^6 \pmod m$.The binary representations of the exponents are as follows $13 = 1101_2$ $9 = 1001_2$ $3 = 0011_2$ $6 = 0110_2$.This time,we will only use one register $rt$ for the result,which we we will initialize to 1.\\
+
+\textbf{Step 1.}Examine the first bit. $13$ and $9$ have 1, so $rt \gets a_1a_2 \cdot rt \pmod m$.\\
+\textbf{Step 2.}Square the result,so $rt \gets rt \cdot rt \pmod m$.\\
+Current state of result: $rt = a_1^2a_2^2$.\\
+\textbf{Step 3.}Examine the second bit. $13$ and $6$ have 1,so $rt \gets a_1a_4 \cdot rt \pmod m$.\\
+Current state of result:$rt = a_1^3a_2^2a_4$.\\
+\textbf{Step 4.}Square the result.\\
+Current state of result: $rt = a_1^6a_2^4a_4^2$.\\
+\textbf{Step 5.}Examine the third bit. $3$ and $6$ have 1,so $rt \gets a_3a_4 \cdot rt \pmod m$.\\
+Current state of result:$rt = a_1^6a_2^4a_3a_4^3$.\\
+\textbf{Step 6.}Square the result.\\
+Current state of result: $rt = a_1^{12}a_2^8a_3^2a_4^6$.\\
+\textbf{Step 7.}Examine the fourth bit. $13,9$ and $3$ have 1,so $rt \gets a_1a_2a_3 \cdot rt \pmod m$.\\
+Current state of result: $rt = a_1^{13}a_2^9a_3^3a_4^6$.\\
+\textbf{Step 8.}No more bits in the binary representation, so the algorithm terminates.\\
+
+The complexity here is approximately $O(n^{1.5} poly(logn))$. To see this, note that in Chapter 6 we assumed that $e_i <= e^{O(d)} \approx 2^O(d)$, and therefore the largest exponent in our expression has $O(d)$ bits. The steps of the algorithm depend on the bit length of the largest exponent, so we have $O(d) = O(\sqrt{n})$ steps. Multiplication can be done in $O(n) poly(logn)$. Combining these, we get the desired result.\\
+
+It should be noted here that most optimizations of Regev's algorithm that have come out to this day are concerned with optimizing this specific operation in terms of gates and/ or qubits. We describe the two most important ones in chapters 14 and 15. 
+
+
+
+

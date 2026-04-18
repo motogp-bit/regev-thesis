@@ -1,0 +1,99 @@
+\chapter{Pseudocode}
+
+\noindent\textbf{Algorithm 5.2: Regev's Algorithm}
+\begin{algorithmic}[1]
+\State \textbf{Input}: A composite number $N$, where $N = p\cdot q$, R, T, D
+\State \textbf{Output}: primes $p$ and $q$
+\State $n \gets \lceil \log_2 N \rceil$
+\Comment{Classical preprocessing}
+\State $d \gets \lceil \sqrt{n} \rceil$
+\State $B \gets$ the squares of the first $d$ primes, in order
+\State $i \gets 0$
+\Comment{Quantum}
+\While{$i < d$}
+    \State Prepare the gaussian. Suppose $amps$ represents the amplitudes
+    \State Define two quantum registers, $e[size]$ and $prod$
+    \State $e \gets amps[e_i]$
+    \State $prod \gets \prod_{i=1}^d B[i]^{e_i}$ \Comment{This happens using modular exponentiation}
+    \State $u = measure(prod)$ \Comment{This changes the amplitudes in e.}
+    \State $e \gets QFT(e)$
+    \State $L^*_i = measure(e) / D$
+    \State $i \gets i + 1$
+\EndWhile
+\Comment{The rest of the algorithm is purely classical}
+\State Form the matrix M from \textbf{Eq 10.1}
+\State $M' = LLL(M)$
+\State $M'' = GramSchmidt(M')$
+\State $SV$ = The list of all vectors $\mathbf{v}$ in M' where the corresponding M'' vector \textbf{v} has $\lVert \mathbf{v} \rVert <\sqrt{k}2^{k/2}T$  
+\For {$SV(j)$ in SV}
+    \State $X \gets \prod_{i=1}^{d} B[i]^{SV_j(e_i)}$
+    \State $l \gets \gcd(X-1,N) $
+    \If  {$l \neq 1$ and $l \neq N$}:
+        \State \Return l
+    \EndIf
+\EndFor
+
+\end{algorithmic}
+\vspace{2cm}
+The gate operations in the following pseudocodes are defined as follows:\\ 
+Let $\ket{a}$,$\ket{b}$ be some arbitrary states, $\ket{0}$ and $\ket{1}$ to be the 0 and 1 states respectively, and let $\ket{a_n\dots a_2 a_1}$ be the bitwise representation of state $\ket{a}$. Let $f$ be the function that describes the operation that makes the respective qubits into ancillas for each gate.
+
+\textbf{MSQUARE} (Modular Squaring) gate: $$\ket{a} \ket{0} \ket{0} \to^{SQUARE} \ket{a} \ket{a^2 \pmod N} \ket{f(a,N)}$$
+
+\textbf{SWAP} gate: $$\ket{a} \ket{b} \to^{SWAP} \ket{b} \ket{a}$$
+
+\textbf{CMMULTCONST} (Controlled Modular Multiplication by a Constant) gate:\\ 
+A gate applied sequentially to all $a_i$ from 1 to n performing
+$$\ket{a_i} \ket{b} \ket{0}\to \ket{a_i} \ket{(c_i^{a_i} \cdot b \pmod N} \ket{f(c_i,a_i,b,N)}$$ for some predetermined classical constants $c_i$ that is unique for each $i$. Evidently, this doesn't represent exponentiating a classical constant by a qubit, but rather the operation where we are either multiplying $b$ by $c_i$ or not, depending on the control qubit $a_i$.
+
+\textbf{QQMULT} (Quantum-Quantum Modular Multiplication) gate: $$\ket{a} \ket{b} \ket{0} \ket{0} \to^{QQMULT} \ket{a} \ket{b} \ket{a \cdot b \pmod N} \ket{f(a,b,N)}$$
+
+\textbf{CPR} (Controlled Phase Rotation) gate: $$\ket{a_k} \ket{b_j} \to^{CPR} \ket{a_k} \ket{exp(2\pi i \frac{a_k}{2^{j - k + 1}} b_j} $$
+
+In the pseudocode, $\ket{anc}$ represents some ancilla result used to perform the operation in the gate.
+
+\noindent\textbf{Algorithm 5.2: Quantum Modular multi-exponentiation}
+\begin{algorithmic}[1]
+\State \textbf{Input}: D Quantum registers $\ket{e_1,e_2,\dots, e_d}$ in a 
+superposition where the $e_i$ are $L$ qubit numbers, bases $b_1, b_2, \dots ,b_d$, $N$
+\State \textbf{Output}: A quantum register holding $\prod_j b_j^{e_j}$ where $e_j$ are in superposition
+\State Let $e_{i,j}$ being the $i_{th}$ qubit of the $j_{th}$ register.
+\State$\ket{acc} \gets \ket1$  
+\For{$i$ from $L$ to $0$}:
+    \State $\ket{acc_{sq}} \gets \ket0$
+    \State $\ket{acc} \ket{acc_{sq}}\ket{0} \to^{MSQUARE} \ket{acc}\ket{acc_{sq}} \ket{anc}$
+    \State $\ket{acc} \ket{acc_{sq}} \to^{SWAP} \ket{acc} \ket{acc_{sq}}$
+    \State Uncompute $\ket{acc_{sq}}$
+    \State $\ket{P_{b_j}} \gets \ket{1}$
+    \For{$j$ from 0 to $d-1$}:
+        \State $\ket{e_{i,j}} \ket{P_{b_j}} \ket{0} \to^{CMMULTCONST} \ket{e_{i,j}} \ket{P_{b_j}} \ket{anc}$
+    \EndFor
+    \State $\ket{acc} \ket{P_{b_j}} \ket{rst} \ket{0}  \to^{QQMMULT} \ket{acc}\ket{P_{b_j}} \ket{rst} \ket{anc}$
+    \State $\ket{acc} \ket{rst} \to^{SWAP} \ket{acc} \ket{rst}$
+    \State Uncompute $\ket{P_{b_j}}, \ket{rst}$
+\EndFor
+\State \Return $\ket{acc}$
+\end{algorithmic}
+
+
+
+\noindent\textbf{Algorithm 5.3: Quantum Fourier Transform}
+\begin{algorithmic}[1]
+\State \textbf{Input}:Quantum registers consisting of $\ket{e_1,e_2,\dots, e_d}$ in a 
+superposition where the $e_i$ are $L$ qubit numbers, $N$.
+\State \textbf{Output}: The result of the QFT in the same registers.
+\State Let $e_{i,j}$ being the $i_{th}$ qubit of the $j_{th}$ register, from MSB to LSB.
+\For{$j$ from 1 to $d$}:
+    \State $\ket{e_{i,j}} \to^{H} \ket{e_{i,j}}$
+    \For{$i$ from $1$ to $L$}:
+            \For {$k$ from $i+1$ to $L$}
+                \State $\ket{e_{i,j}}\ket{e_{k,j}} \to^{CPR(e_{k,j},e_{i,j})} (\ket{e_{i,j}})\ket{e_{k,j}}$ 
+        \EndFor
+    \EndFor
+    \For{$i$ from $1$ to $\lfloor L/2 \rfloor$}
+        \State $\ket{e_{i,j}}\ket{e_{L-i+1, j}} \to^{SWAP} \ket{e_{i,j}} \ket{e_{L-i+1, j}}$
+    \EndFor
+\EndFor
+
+\end{algorithmic}
+

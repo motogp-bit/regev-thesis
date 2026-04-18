@@ -95,17 +95,9 @@ for i in range(len(Exps)):
 
 
 for cand in cands:
-    f_exps = []
-    factor = 1
-    for i in range(d):
-        f_exps.append((cand[i] - (cand[i] % 2)) / 2)
-        factor = (factor * (b[i] if cand[i] % 2 == 1 else 1)) % N
-    prod = 1
-    f_sqrt = sqrt_mod(factor, N)
     X = 1
     for i in range(d):
-        X *= pow(b[i],f_exps[i],N) #classical modular exponentiation
-    X= (X * f_sqrt) % N
+        X *= pow(b[i],cand[i],N) #classical modular exponentiation
     p = math.gcd(X-1, N)
     if p > 1 and p < N:
         print(p)
@@ -116,4 +108,3 @@ for cand in cands:
 
 
 
-	
