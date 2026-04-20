@@ -1,10 +1,9 @@
 from qiskit import QuantumCircuit, QuantumRegister
 import numpy as np
-from .gates.gates import QQMULT, CMMC
+from .gates import QQMULT, CMMC
 
-def PMBP(e_qubits, bases, n_modulus, i_level, k=2):
+def PMBP(qc, e_qubits, bases, n_modulus, i_level, k=2):
     d = len(e_qubits)
-    qc = QuantumCircuit(name=f"PMBP_bit_{i_level}")
     
     cl = []
     
@@ -45,4 +44,4 @@ def PMBP(e_qubits, bases, n_modulus, i_level, k=2):
         cl = nl
         layer_idx += 1
         
-    return qc.to_gate(), cl[0]
+    return qc, cl[0]

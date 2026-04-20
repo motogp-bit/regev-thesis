@@ -2,15 +2,16 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.quantum_info import Statevector
 from funcs import *
-from sympy.ntheory import sqrt_mod
 import math
 from sympy import Matrix
-from sympy.polys.numberfields import lll
+from sympy.polys.matrices import DomainMatrix
+from qiskit_aer import AerSimulator
+from qiskit import transpile
 
-backend = Aer.get_backend("qasm_simulator")
-N = 446393 #p = 509, q = 877, d = 5
-Ns = 77 #11*7, d = 3
-n = int(np.ceil(np.log2(Ns)))
+backend = AerSimulator()
+Ns = 446393 #p = 509, q = 877, d = 5
+N = 77 #11*7, d = 3
+n = int(np.ceil(np.log2(N)))
 d = int(np.sqrt(n))
 delta = 1/2
 k = 4
@@ -21,11 +22,11 @@ while len(primes) < d:
     if is_prime(current):
         primes.append(current)
     current += 1
-
+QFT_gate = QFT(n).to_gate()
 R = np.sqrt(2* d) + 1 #R > sqrt(2d)
 
 temp = 0
-r = 2*np.sqrt(d)*R
+r = int(2*np.sqrt(d)*R)
 for i in range(r + (r%2) , 2*r, 2):
     temp = i
     while (temp % 2 == 0):
@@ -48,17 +49,18 @@ for _ in range(d + k):
     qc = QuantumCircuit(*regs, product, cr_e, cr_p)
     qc.initialize(amps_nd, qc.qubits[:n*d])
 
-    product = qmme(qc, regs, get_bases(N, d, primes, 2), N)
+    qc, product = QMME(qc, regs, get_bases(N, d, primes, 2), N)
 
     qc.measure(product, cr_p)
 
     for reg in regs:
-        qc.append(QFT(n), reg)
+        qc.append(QFT_gate, reg)
 
     for j in range(d):
         qc.measure(regs[j], cr_e[j*n:(j+1)*n])
 
-    result = backend.run(qc, shots=1).result()
+    tqc = transpile(qc,backend) #doing this to avoid multiple decompose()
+    result = backend.run(tqc, shots=1).result()
     counts = result.get_counts()
     bitstring = list(counts.keys())[0]
     e_bits = bitstring[n:]  
@@ -85,12 +87,11 @@ for i in range(2 * d + k):
         else:
             temp.append(samples[i-d][j] / delta)
     m.append(temp)
-M = Matrix(m)
-exps = lll(M)
-Exps = Matrix(exps)
+M = m.to_Matrix()
+exps = M.to_DM().lll().to_Matrix()
 cands = []
-for i in range(len(Exps)):
-    if np.linalg.norm(Exps[i]) < np.sqrt(k) * 2**(k/2) * T:
+for i in range(len(exps)):
+    if np.linalg.norm(exps[i]) < np.sqrt(k) * 2**(k/2) * T:
         cands.append(exps[i])
 
 
