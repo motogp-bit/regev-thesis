@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit, QuantumRegister
 import numpy as np
-from .gates import QQMULT, CMMC
+from .gate_defs import QQMULT, CMMC
 
 def PMBP(qc, e_qubits, bases, n_modulus, i_level, k=2):
     d = len(e_qubits)

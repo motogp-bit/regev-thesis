@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit, QuantumRegister
 from .pmbp import PMBP
-from .gates import MSQUARE, QQMULT
+from .gate_defs import MSQUARE, QQMULT
 import numpy as np
 
 def QMME(qc, e_regs, precomputed_bases, N):
