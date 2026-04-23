@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit, QuantumRegister
 import numpy as np
-from gate_defs import QQMULT, CMMC
+from gate_defs import *
 
 def PMBP(qc, e_qubits, bases, n, i_level, k=2, workspace, ancilla):
     d = len(e_qubits)
@@ -8,11 +8,6 @@ def PMBP(qc, e_qubits, bases, n, i_level, k=2, workspace, ancilla):
     cl = []
     qc.x(workspace[0])
     for j in range(d):
-        #val = int(bases[j])
-        #leaf_width = max(val.bit_length(), 1) 
-        #reg = QuantumRegister(leaf_width, f'leaf_b{i_level}_e{j}')
-        #qc.add_register(reg)
-        #qc.x(reg[0]) 
         qc.append(CMMC(n, val), [e_qubits[j], *work])
         qc.append(QQMULT(n, n, n, k), [*acc, *work, *acc])
         cl.append(reg)
@@ -44,7 +39,7 @@ def PMBP(qc, e_qubits, bases, n, i_level, k=2, workspace, ancilla):
         
     return qc, cl[0]
 
-def PMBP_tree(qc, e_qubits, bases, n, N, inverse_bases):
+def PMBP_tree(qc, e_qubits, bases, n, N, inverse_bases, original_anc):
 
     d = len(e_qubits)
 
@@ -56,7 +51,6 @@ def PMBP_tree(qc, e_qubits, bases, n, N, inverse_bases):
 
     work = QuantumRegister(n, "work")
     qc.add_register(work)
-
     for j in range(d):
         qc.append(CMMC(n, bases[j]), [e_qubits[j], *values[j]])
 
@@ -70,13 +64,11 @@ def PMBP_tree(qc, e_qubits, bases, n, N, inverse_bases):
         for j in range(0, size // 2):
 
             left = current[j]
+            left_inv = inverse_bases[j]
             right = current[size - 1 - j]
-
-            qc.append(QQMULT(n, n, n, N), [
-                *left,
-                *right,
-                *work
-            ])
+            right_inv = mod_inv(current[size - 1 - j], N) if size == d else inverse_bases[j]
+            inverse_bases[j] = right_inv * left_inv % N
+            qc.append(QQMULT_IP(n, size(original_anc), N, left), [*left, *clean_anc, *dirty_anc, original_anc])
 
             next_level.append(work)
 
