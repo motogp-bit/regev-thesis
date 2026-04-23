@@ -7,14 +7,14 @@
 \State $n \gets \lceil \log_2 N \rceil$
 \Comment{Classical preprocessing}
 \State $d \gets \lceil \sqrt{n} \rceil$
-\State $B \gets$ the squares of the first $d$ primes, in order
+\State $B[] \gets$ the first $d$ primes, in order
 \State $i \gets 0$
 \Comment{Quantum}
 \While{$i < d$}
     \State Prepare the gaussian. Suppose $amps$ represents the amplitudes
     \State Define two quantum registers, $e[size]$ and $prod$
     \State $e \gets amps[e_i]$
-    \State $prod \gets \prod_{i=1}^d B[i]^{e_i}$ \Comment{This happens using modular exponentiation}
+    \State $prod \gets \prod_{i=1}^d B[i]^{2e_i}$ \Comment{Modular Exponentiation}
     \State $u = measure(prod)$ \Comment{This changes the amplitudes in e.}
     \State $e \gets QFT(e)$
     \State $L^*_i = measure(e) / D$
@@ -32,6 +32,7 @@
         \State \Return l
     \EndIf
 \EndFor
+\State \Return 0
 
 \end{algorithmic}
 \vspace{2cm}

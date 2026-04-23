@@ -1,6 +1,6 @@
 \chapter{LLL}
 
-The final piece of mathematical theory we need to understand before we can analyze Regev's algorithm in a simple and coherent manner has to do with the Lenstra–Lenstra–Lovász algorithm,or LLL for short\footnote{This is not a mistake,the name really refers to two people named Lenstra. Unfortunately,they are brothers.}. In reality, the original paper dealt with factoring polynomials with rational coefficients in polynomial time, however the technique developed essentially converts polynomial factorization into a lattice problem. Before we explain the problem, it is best if we briefly go through the Gram-Schmidt orthogonalization process.
+The final piece of mathematical theory we need to understand before we can analyze Regev's algorithm in a simple and coherent manner has to do with the Lenstra–Lenstra–Lovász algorithm, or LLL for short\footnote{This is not a mistake,the name really refers to two people named Lenstra. Unfortunately,they are brothers.}. In reality, the original paper dealt with factoring polynomials with rational coefficients in polynomial time, however the technique developed essentially converts polynomial factorization into a lattice problem. Before we explain the problem, it is best if we briefly go through the Gram-Schmidt orthogonalization process.
 
 The classical Gram-Schmidt process is defined as an algorithm that performs the following operation:\\
 Given a finite, linearly independent set of vectors $$\mathbf{S} = \{ \mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_k \}$$
@@ -17,13 +17,15 @@ Then the steps for Gram-Schmidt are as follows:\\
 2.For all $i$ with $2\leq i \leq k$:\\
 3.Compute $\mu_{i,j}$ for j from 1 up to $i - 1$\\
 4.$\mathbf{u}_i \coloneqq \mathbf{v}_i - \sum_{j = 1}^{i-1} \mu_{i,j} \mathbf{u}_i$\\
-5.End the loop and return the $\mathbf{u_i}$
+5.End the loop $\mathbf{u_i}$\\
+6.Normalize the $\mathbf{u_i}$ (compute the norm $\lVert \mathbf{u_i} \rVert$ and divide each coordinate of $\mathbf{u_i}$ by said norm.
 
 
 Now, we are ready to describe what LLL does. Firstly, we define an LLL-reduced basis as so:\\
 
 \textbf{Definition 9.1 (LLL-reduced basis)}: Given a basis $$\mathbf{B} = \{ \mathbf{b}_1, \mathbf{b}_2, \dots, \mathbf{b}_d \}$$
-denote $\mathbf{B}' = \{ \mathbf{b}'_1, \mathbf{b}'_2, \dots, \mathbf{b}'_d \}$ as the basis that is produced by applying the Gram-Schmidt process on $\mathbf{B}$,and $\mu_{i,j}$ as the associated Gram-Schmidt coefficients. Then, the basis is LLL-reduced if there exists parameter $\delta \in (1/4,1]$ such that:\\
+denote $\mathbf{B}' = \{ \mathbf{b}'_1, \mathbf{b}'_2, \dots, \mathbf{b}'_d \}$ as the basis that is produced by applying the Gram-Schmidt process on $\mathbf{B}$, 
+and $\mu_{i,j}$ as the associated Gram-Schmidt coefficients. Then, the basis is LLL-reduced if there exists parameter $\delta \in (1/4,1]$ such that:\\
 
 1.$\lvert\mu_{i,j}\rvert \leq 1/2$ for $1\leq i < j \leq d$ \\
 2.$\delta \lVert \mathbf{b'}_{k-1}\rVert^2 \leq \lVert \mathbf{b}_{k}'\rVert^2 + \mu_{k,k-1}^2 \lVert \mathbf{b}_{k-1}'\rVert^2$ for $2\leq k \leq d$, the \textbf{Lovasz condition}.
@@ -75,20 +77,20 @@ $Vol(\Lambda)$ as the \textbf{volume} of the lattice $\Lambda$. The volume of a 
     Vol(\Lambda) = \sqrt{det(B^T B)}
 \end{equation}
 where B is the $n \times d$ whose columns are the $\mathbf{b}_i$.
-For full rank lattices where B is a $n \times n$ matrix, $Vol(\Lambda)$ is \textbf{equivalent to the determinant of B $det(B)$}.\\
+For full rank lattices where B is a $n \times n$ matrix, $Vol(\Lambda)$ is \textbf{equivalent} to the determinant of B $\mathbf{det(B)}$.\\
 We will not demonstrate the proof here,but an equivalent definition for $Vol(\Lambda)$ is the following:
 \begin{equation}
     Vol(\Lambda) = \prod_{i=1}^d \lVert \mathbf{b}_i' \rVert
 \end{equation}
-It should be noted that an interpretation of the 2-D determinant is that it represents the area of the parallelogram formed by the basis vectors.In n dimensions,the parallelogram becomes a parallelepiped formed by the n basis vectors,and area corresponds to volume.
+It should be noted that an interpretation of the 2-D determinant is that it represents the area of the parallelogram formed by the basis vectors. In n dimensions,the parallelogram becomes a parallelepiped formed by the n basis vectors,and area corresponds to volume. In general, $Vol$ can be thought of as a generalization of the determinant when there aren't necessarily enough vectors to span the whole space, so the volume of the parallelepiped formed by whatever vectors exist in our $B$.
 
 Suppose we restrict 8.2 to being the product of only $j$ terms, with $j < d$. Then let $Vol_j(\Lambda)$ be the volume of the parallelepiped formed by the first j basis vectors.
 
-This means that the i-th term in the $D(d)$ product essentially represents the product squared volumes of the parallelepipeds formed by the first i basis vectors, so $(Vol_i(\Lambda))^2$. The value for the exponent is simply a weight with respect to the order of the vectors: earlier vectors and their parallelepipeds affect the value more.
+This means that the i-th term in the $D(d)$ product essentially represents the product squared volumes of the parallelepipeds formed by the first i basis vectors, so $(Vol_i(\Lambda))^2$. The value for the exponent is simply a weight with respect to the order of the vectors: earlier vectors and their parallelepiped volumes affect the value more.
 
-LLL's termination condition is when the vectors are in ascending order of size,and every 2 consecutive vectors satisfy the Lovasz condition. If the orthogonal component of a given vector is smaller than the one of the previous vector,the vectors are swapped and we recompute their orthogonal components. We can prove that this action,together with the Lovasz condition,guarantee a decrease of the potential function after every swap. Eventually however, after finitely many swaps, $D(d)$ will hit a local minimum, as there will be no further swaps to be made.This is when the algorithm terminates, producing a sufficiently small basis for $\Lambda$.
+LLL's termination condition is when the vectors are in ascending order of size, and every 2 consecutive vectors satisfy the Lovasz condition. If the orthogonal component of a given vector is smaller than the one of the previous vector,the vectors are swapped and we recompute their orthogonal components. We can prove that this action,together with the Lovasz condition,guarantee a decrease of the potential function after every swap. Eventually however, after finitely many swaps, $D(d)$ will hit a local minimum, as there will be no further swaps to be made.This is when the algorithm terminates, producing a sufficiently small basis for $\Lambda$.
 
-We will now describe a very important bound for the LLL basis that have been proven to hold.\\ 
+We will now describe a very important bound for the LLL basis that has been proven to hold.\\ 
 Let $\mathbf{b}_1$ be the first (and therefore shortest) vector in the LLL basis.
 Also let $m(\Lambda)$ be the length of the smallest nonzero vector of $\Lambda$. In mathematical terms, $$m(\Lambda) = min\set{\lVert \mathbf{x} \rVert ^2 \: s.t. \mathbf{x} \in \Lambda, \mathbf{x} \neq \mathbf{0}}$$ Then, the following bound holds:
 

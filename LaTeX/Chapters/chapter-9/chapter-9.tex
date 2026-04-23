@@ -2,9 +2,9 @@
 
 After reading the LLL chapter, the reader might have possibly come to the conclusion that Regev collects a single sample - the first vector from LLL - from every run of the algorithm, and hopes that this vector happens to correspond to a non-trivial root. That is, however, not the case. Certain procedures we've described up to now, like the gaussian superposition and the chance of hitting a trivial root rely on probabilistic outcomes, and we also need to account for quantum noise. Regev therefore attempts to generate as many vectors as possible from a single run, to increase his probability of finding non-trivial roots.
 
-Now, suppose we have our $d+k$ d-dimensional samples of $\mathit \Lambda^*$ $\mathbf{v_1,v_2}\dots \mathbf{v_{d+k}}$ (by normalized, we mean that we have divided the original samples by $D$ and now every entry is in $[0,1)$. Assuming our samples aren't exactly accurate, there has to be some additive noise $\delta_i$ for each $\mathbf{v_i}$. Let $\delta$ be some upper bound on the magnitude of the $\delta_i$, and define the $2d+k$ dimensional lattice $\mathit \Lambda'$ spanned by the columns of the following matrix (we need $k \geq 4$ from Pomerance)
+Now, suppose we have our $d+k$ normalized d-dimensional samples of $\mathit \Lambda^*$ $\mathbf{v_1,v_2}\dots \mathbf{v_{d+k}}$.First, by normalized, we mean that we have divided the original samples by $D$ and now every entry is in $[0,1)$, so we've mapped every sample to a unique point on the unit torus. Assuming our samples aren't exactly accurate, there has to be some additive noise $\delta_i$ for each $\mathbf{v_i}$. Let $\delta$ be some upper bound on the magnitude of the $\delta_i$, and define the $2d+k$ dimensional lattice $\mathit \Lambda'$ spanned by the columns of $M$, where $M$ is the following matrix (we need $k \geq 4$ from Pomerance)
 \begin{equation}
-M = \left[
+M = D \cdot \left[
 \begin{array}{c|c}
   I_{d\times d} & 0 \\
   \hline

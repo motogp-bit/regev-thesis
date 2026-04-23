@@ -1,18 +1,18 @@
 \chapter{Regev optimizations: Spooky pebbling}
 
-Whilst Fibonacci exponentiation does provide somewhat of a solution in a qubit-scarce environment and guarantees asymptotically better results, experiments seem to suggest that the prefactors dominate the expression for practical uses as demonstrated in \cite{KahanamokuMeyerRagavanVaikuntanathan2024} (which also happens to be the paper detailing the idea we will talk about in this chapter), such as factoring RSA numbers. For our final theoretical chapter, we will present an idea based on a technique called "spooky pebbling" that promises to finally transform Regev into an advantageous solution for factoring large numbers.
+Whilst Fibonacci exponentiation does provide somewhat of a solution in a qubit-scarce environment and guarantees asymptotically better results, experiments seem to suggest that the prefactors dominate the expression for practical uses as demonstrated in \cite{KahanamokuMeyerRagavanVaikuntanathan2024} (which also happens to be the paper detailing the idea we will talk about in this chapter), such as factoring RSA numbers. For our final chapter, we will present an idea based on a technique called "spooky pebbling" that promises to finally transform Regev into an advantageous solution for factoring large numbers.
 
 First,let us describe what a pebble game is, and its relation to quantum computing:\\
 Suppose we have a directed acyclic graph, in which each node represents an intermediate value. In every step, we can perform two operations on that graph:
 
-1.Pebble: Place a pebble on any given set of nodes, provided all of their parents have pebbles. This corresponds to computing some value.\\
-2.Unpebble: You can remove a pebble from a set of nodes. This corresponds to uncomputing a value, or emptying certain registers.\\
+1.\textbf{Pebble:} Place a pebble on any given set of nodes, provided all of their parents have pebbles. This corresponds to computing some value.\\
+2.\textbf{Unpebble:} You can remove a pebble from a set of nodes. This corresponds to uncomputing a value, or emptying certain registers.\\
 
-The goal of the game is to go from the initial no pebble state to the state where all outputs nodes have pebbles while minimizing amount of operations (number of times you pebbled/ unpebbled) and space (maximum number of pebbles currently present on the graph). As we mentioned in the previous chapter, quantum operations need to be reversible. This means that in order to correspond a quantum circuit to a pebble game, we need to add the restriction that you can only unpebble when all parent nodes of every node we are unpebbling have a pebble.
+The goal of the game is to go from the initial no pebble state to the state where all outputs nodes have pebbles while minimizing amount of operations (number of times you pebbled/unpebbled) and space (maximum number of pebbles currently present on the graph). As we mentioned in the previous chapter, quantum operations need to be reversible. This means that in order to correspond a quantum circuit to a pebble game, we need to add the restriction that you can only unpebble when all parent nodes of every node we are unpebbling have a pebble.
 
 Let us now think of nodes as qubit registers.In a normal quantum circuit, qubit registers containing information need to be cleaned when they dont need to be used anymore for two reasons. Firstly, due to entanglement, it is possible they contain information that affects the final output. Secondly, qubits are expensive, and therefore reusing qubits is essential to quantum computations. Fortunately, the way quantum circuits are designed (unitary gates), every operation is reversible. This, means however, that we need to essentially run the gates in the circuit twice to "unpebble" the registers, in order to make sure the qubits are empty when we do our final measurement.
 
-To resolve this issue, let us define a third operation,called "Ghosting". Given a register x, "Ghosting" corresponds to measuring a register in the Hadamard basis e.e. measuring after applying a Hadamard gate. A Hadamard gate on the parent disentangles the parent from the child, meaning the superposition of the child stays intact even after the measurement. This process, though,  isn't entirely clean.For a $\ket{+}$ measurement (0), everything works as normal. However, if we measure $\ket{-}$ (1), that means a relative phase of -1, or 180 degrees, has been added to the child registers. In other words, we get the following state transition:
+To resolve this issue, let us define a third operation,called "\textbf{Ghosting}". Given a register x, Ghosting corresponds to measuring a register in the Hadamard basis e.e. measuring after applying a Hadamard gate. A Hadamard gate on the parent disentangles the parent from the child, meaning the superposition of the child stays intact even after the measurement. This process, though, isn't entirely clean.For a $\ket{+}$ measurement (0), everything works as normal. However, if we measure $\ket{-}$ (1), that means a relative phase of -1, or 180 degrees, has been added to the child registers. In other words, we get the following state transition:
 \begin{equation}
     \sum \ket{x} \mapsto \sum -1^{f(x)} \ket{x}
 \end{equation}
@@ -69,4 +69,10 @@ We will mostly concern ourselves here with how spooky pebbling relates to Regev.
 \end{algorithm}
 
 The complexity depends upon the length of the chain. In theory, that should be proportional to the number of exponents $e_i$ times the bits per exponent. Given how we guarantee $\lvert e_i \rvert \leq 2^{O(d)}$, we have $O(d)$ exponent size. This means that $l = O(d^2)$. If the optimal value for $d$ is $\sqrt{n}$, this puts $l = O(n)$, so we can replace $l$ with $n$ in the complexity calculations given in the paper. In practice though, ghosting isn't exactly noise robust, and we also need to account for the extra bits that will give us reliable lattice samples later. Heuristically, that implies $l \approx 1.5n$, giving us
-$O(logn)$ space, $O(3n) = O(n)$ gates, and optimal circuit depth due to parallelism. This has resulted in phenomenal improvements in practice , even managing to achieve half the circuit depth of optimized Shor according to the paper's authors.
+$O(logn)$ space, $O(3n) = O(n)$ gates, and optimal circuit depth due to parallelism. This has resulted in phenomenal improvements in practice , even managing to achieve half the circuit depth of optimized Shor according to the paper's authors. Results straight from \cite{KahanamokuMeyerRagavanVaikuntanathan2024}, page 4 are pasted below. Note that the BKZ algorithm is preferred for lattice reduction by the paper's authors.\\
+
+\begin{figure}[H] 
+    \centering
+    \includegraphics[width=1\linewidth]{spooky_pebbling.png} 
+    \caption{Spooky pebbling comparison.}
+\end{figure}

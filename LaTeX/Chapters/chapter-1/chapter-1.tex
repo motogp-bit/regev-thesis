@@ -13,11 +13,11 @@ The classical part of Shor's algorithm begins by picking a random number $a$ wit
 \begin{equation}
 a^r \equiv 1 \pmod N
 \end{equation}
-for some $r$ with $1<r<\Phi(N)$\footnote{$r$ is bounded up by $\Phi(N)$ due to Lagrange's theorem}, where r is called the multiplicative order, or period, of $a$ modulo $N$ and $\Phi(N)$ is Euler's totient function. It should be noted that $r$ is defined to be the smallest possible number that satisfies \textbf{Eq 2.1}.
+for some $r$ with $1<r<\Phi(N)$\footnote{$r$ is bounded up by $\Phi(N)$ due to Lagrange's theorem}, where r is called the multiplicative order, or \textbf{period}, of $a$ modulo $N$ and $\Phi(N)$ is Euler's totient function. It should be noted that $r$ is defined to be the smallest possible number that satisfies \textbf{Eq 2.1}.
 
 In this case, Shor's algorithm applies a quantum subroutine to find $r$. We will analyze this subroutine in the following chapter, as it directly ties into Regev's algorithm.
 
-From \textbf{Eq. 2.1}, it is obvious that  $N\mid(a^r - 1)$. This implies (but is not equivalent to):
+From \textbf{Eq 2.1}, it is obvious that  $N\mid(a^r - 1)$. This implies (but is not equivalent to):
 
 \begin{equation}
 N\mid(a^{r/2} - 1)(a^{r/2} + 1)

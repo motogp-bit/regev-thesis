@@ -10,9 +10,9 @@ The first, and arguably most important, mathematical foundation for this paper w
 In practice, this implies that a n-dimensional lattice $\Lambda^n$ is the set $L$ of all integer linear combinations of n linearly independent vectors. In other words:
 
 \begin{equation}
-    \Lambda = \set{z_1b_1+z_2b_2+\dots +z_nb_n | z_i \in \mathbb{Z},b_i \in \mathbb{R^n}}
+    \Lambda^n = \set{z_1b_1+z_2b_2+\dots +z_nb_n | z_i \in \mathbb{Z},b_i \in \mathbb{R^n}}
 \end{equation}
-The vectors $b_i$ form a basis of the lattice. The most common example of a lattice is $\mathbb{Z}^n$, the set of all n dimensional vectors with integer entries. Another well-known lattice, which is the one that will concern us in this paper, is the set of all vectors satisfying a linear modular multiplicative congruence (if that isn't obvious from the description, those vectors need to have integer entries).
+The vectors $b_i$ form a basis of the lattice. The most common example of a lattice is $\mathbb{Z}^n$, the set of all n dimensional vectors with integer entries. 
 
 Now, given a lattice $\Lambda$, the Shortest Vector Problem (SVP) asks to find the non-zero vector with minimal Euclidean length. That is, we are looking for $v_0$, such that:
 \begin{equation}
@@ -35,7 +35,7 @@ We will now show that, in 1 dimension, SVP reduces to period finding.
 Furthermore,$f(x-a) = f((x-a) + a) = f(x)$, meaning that if $a\in P$,then $-a \in P$, so every element has an inverse. Hence,since $P$ is closed under addition, it is also closed under subtraction. That proves the first lattice property for $P$.\\
 Since $r$ is by definition the smallest element of $P$, setting $\epsilon = r$ satisfies property 2, and therefore $P$ is a lattice.
 
-Moreover, since $P$ is a subset of $\mathbb{Z}$ that is closed under addition and every element has an inverse, it follows that $P$ is a subgroup of $\mathbb{Z}$. Every subgroup of $\mathbb{Z}$ is of the form $m\mathbb{Z} = \set{km : k \in \mathbb{Z}}$,where $m$ is the smallest element of the subgroup, so in this case $m = r$. Therefore, the elements of the lattice are $...,-2r,-r,0,r,2r,...$, and so the shortest nonzero elements are $r$ and $-r$, meaning the magnitude of the shortest vector in this case is exactly $r$. This concludes our proof.
+Moreover, since $P$ is a subset of $\mathbb{Z}$ that is closed under addition and every element has an inverse, it follows that $P$ is a subgroup of $\mathbb{Z}$. Every subgroup of $\mathbb{Z}$ is of the form $m\mathbb{Z} = \set{km : k \in \mathbb{Z}}$,where $m$ is the smallest element of the subgroup, so in this case $m = r$. Therefore, the elements of the lattice are $\dots,-2r,-r,0,r,2r,\dots$, and so the shortest nonzero elements are $r$ and $-r$, meaning the magnitude of the shortest vector in this case is exactly $r$. This concludes our proof.
 
 This can easily be generalized to n dimensions. Suppose we have a function $f:\mathbb{Z}^n \to R$, which is periodic with respect to some arbitrary n-dimensional vector $v$. As stated above, a lattice can be constructed that consists of all other possible vectors with respect to which f is periodic. However, now we are no longer looking to find the shortest vector according to Euclidean distance, since that would simply be a vector with 0 everywhere besides the dimension with the shortest period. Instead,we want to find the shortest period in \textbf{every} dimension, so the shortest \textbf{basis} with respect to Euclidean distance. Therefore, the problem of finding periods in n dimensions broadly corresponds to finding the shortest basis of a given n-dimensional lattice.
 
@@ -45,7 +45,7 @@ To explaining the meaning of the word "broadly" there, we first need to define w
  
 We can think of $H_g$ as being essentially H shifted by g.
 
-In reality, both SVP and factoring are special cases of a more general problem called HSP (Hidden Subgroup Problem) for specific types of groups \footnote{Read more about HSP in the \href{https://en.wikipedia.org/wiki/Hidden_subgroup_problem}{wikipedia page}}. Regev himself proved in \cite{Regev2004} that a quantum computer can solve SVP to some approximation factor (that is, find a vector that whose magnitude is larger than the shortest to a constant factor) under the assumption that there exists an algorithm that solves the hidden subgroup problem on the dihedral group by coset sampling . Factoring corresponds to solving HSP on finite abelian groups. In fact, the classical postprocessing in Regev's algorithm (most of what we will describe in Chapters 9 and 10) is essentially already outlined in the paper above - Regev's new idea is to create a relationship that intertwines factoring and SVP, solve SVP with coset sampling and use his solution to solve factoring as well.
+In reality, both SVP and factoring are special cases of a more general problem called HSP (Hidden Subgroup Problem) for specific types of groups \footnote{The reader can inform himself/herself more about HSP in the \href{https://en.wikipedia.org/wiki/Hidden_subgroup_problem}{wikipedia page}}. Regev himself proved in \cite{Regev2004} that a quantum computer can solve SVP to some approximation factor (that is, find a vector that whose magnitude is larger than the shortest to a constant factor) under the assumption that there exists an algorithm that solves the hidden subgroup problem on the dihedral group by coset sampling . Factoring corresponds to solving HSP on finite abelian groups. In fact, the classical postprocessing in Regev's algorithm (most of what we will describe in Chapters 9 and 10) is essentially already outlined in the paper above - Regev's new idea is to create a relationship that intertwines factoring and SVP, solve SVP with coset sampling and use his solution to solve factoring as well.
 
 Next, it is important to prove the following statement:
 
@@ -68,7 +68,7 @@ Associativity is inherited by the parent group.
 
 Therefore, the set of all vectors whose coordinates satisfy \textbf{Eq 5.4} forms a finite lattice $\Lambda$, and our proof is complete.
 
- Consider that a finite n-dimensional lattice modulo N whose elements are vectors that satisfy the congruence in \textbf{Eq 5.4} is a subgroup of the group of all vectors with integer coordinates mod N (denoted $Z_N^n$), so we can define a coset of that lattice with respect to that group accordingly. Crucially, replacing 1 with $u$ for some arbitrary $u \in \mathbb{Z}_N$ defines a coset whose representative is some exponent vector $\mathbb{t}$ that represents the exact shift that needs to be applied to the $v_i$ to get $u$ instead of 1.This will come into importance later.
+ Consider that a finite n-dimensional lattice modulo N whose elements are vectors that satisfy the congruence in \textbf{Eq 5.4} is a subgroup of the group of all vectors with integer coordinates mod N (denoted $Z_N^n$), so we can define a coset of that lattice with respect to that group accordingly. Crucially, replacing 1 with $u$ for some arbitrary $u \in \mathbb{Z}_N$ defines a coset whose representative is some exponent vector $\mathbb{t}$ that represents the exact shift that needs to be applied to the $v_i$ to get $u$ instead of 1. This will come into importance later.
  
 Lastly, in our next chapters we will be discussing a lot the notion of a dual lattice. Let us define that here:\\
 
