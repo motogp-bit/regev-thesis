@@ -1,6 +1,4 @@
 import numpy as np
-from qiskit import QuantumCircuit
-from qiskit.circuit.library import StatePreparation
 
 def gaussian(n, a, s, d):
     z = np.linspace(-a, a - 1, 2**n)

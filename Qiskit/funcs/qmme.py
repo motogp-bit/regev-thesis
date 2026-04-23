@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit, QuantumRegister
-from .pmbp import PMBP
-from .gate_defs import MSQUARE, QQMULT
+from pmbp import PMBP
+from gate_defs import MSQUARE, QQMULT
 import numpy as np
 
 def QMME(qc, e_regs, precomputed_bases, N):
@@ -13,7 +13,7 @@ def QMME(qc, e_regs, precomputed_bases, N):
     qc.add_register(acc, acc_sq, temp_res)
 
     qc.x(acc[0]) 
-
+    
     msquare_gate = MSQUARE(n, k)
     qmult_gate = QQMULT(n, n, n, k) # n x n -> n bits (Modular)
 
@@ -28,7 +28,7 @@ def QMME(qc, e_regs, precomputed_bases, N):
         curr_bit_bases = [precomputed_bases[j][i] for j in range(d)]
         curr_e_bits = [e_regs[j][i] for j in range(d)]
         
-        qc, pmbp_root_reg = PMBP(qc, curr_e_bits, curr_bit_bases, ancillas, n, i, k)
+        qc, pmbp_root_reg = PMBP(qc, curr_e_bits, curr_bit_bases, n, i, k)
         
         qc.append(qmult_gate, [*acc, *pmbp_root_reg, *temp_res])
 
