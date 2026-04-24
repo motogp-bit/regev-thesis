@@ -66,10 +66,9 @@ def PMBP_tree(qc, e_qubits, bases, n, N, inverse_bases, original_anc):
             left = current[j]
             left_inv = inverse_bases[j]
             right = current[size - 1 - j]
-            right_inv = mod_inv(current[size - 1 - j], N) if size == d else inverse_bases[j]
-            inverse_bases[j] = right_inv * left_inv % N
+            right_inv = inverse_bases[size - 1 - j] if size == d else inverse_bases[j]
+            inverse_bases[j] = (right_inv * left_inv) % N
             qc.append(QQMULT_IP(n, size(original_anc), N, left), [*left, *clean_anc, *dirty_anc, original_anc])
-
             next_level.append(work)
 
         current = next_level
