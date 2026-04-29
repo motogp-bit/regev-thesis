@@ -2,8 +2,6 @@ from qiskit import QuantumCircuit, QuantumRegister
 import numpy as np
 from qiskit.circuit.library import FullAdderGate ,ModularAdderGate, IntegerComparatorGate,HRSCumulativeMultiplier
 
-
-#S should be n - 2
 def CMMC(n, constant):
     ctrl = QuantumRegister(1, name='ctrl')
     reg = QuantumRegister(n, name='reg')
@@ -95,8 +93,8 @@ def QDOUBLE(n, N):
     qc.x(x[n-1])
     return qc.to_gate()
 """
-
-def IN_PLACE_MODULAR_ADDER():()
+#
+#def IN_PLACE_MODULAR_ADDER(N): |a> |b> |0^n> -> |a> |ab mod N> |0^n>
 
 def CLEAR(n, value):
     qc = QuantumCircuit(n)
@@ -112,7 +110,10 @@ def SWAP(n):
 
     return qc.to_gate(label=f"SWAP({n})")
 
-#POTENTIAL IMPLEMENTATION
+#def MOD_RED(N):  |c> |0^n> |0^gn> -> |c> |c mod N> |0^gn>
+#def MULTIPLIER(): |a> |b> |0^2n> |0^S> -> |a> |b> |ab> |0^S> using some multiplication algorithm
+#POTENTIAL IMPLEMENTATION for MOD_RED
+
 """
 def MOD_RED(gn, n, N):  # |C> |0> |0^n> |0> |0^gn> -> |0^gn> |0 or 1> |C mod N> |0> |0^gn>
     c = QuantumRegister(gn, 'c')
@@ -131,27 +132,26 @@ def MOD_RED(gn, n, N):  # |C> |0> |0^n> |0> |0^gn> -> |0^gn> |0 or 1> |C mod N> 
     qc.append(SWAP(n), [*c[:n], *value])
     return qc.to_gate()
 """
-#MOD_RED(N):  |c> |0^n> |0^gn> -> |c> |c mod N> |0^gn> 
 
-def MOD_MULT(n,N): #|a> |b> |0^2n> |0^n> |0^2n> -> |a> |b> |0^2n> |ab mod N> |0^2n>
+
+def MOD_MULT(n,N): #|a> |b> |0^n> |0^2n> -> |a> |b> |ab mod N> |0^2n>
     a = QuantumRegister(n)
     b = QuantumRegister(n)
     ab = QuantumRegister(2*n)
     abmodn = QuantumRegister(n)
-    anc = QuantumRegister(2*n)
-    qc = QuantumCircuit(a, b, ab, abmodn, anc)
-    multiplier = HRSCumulativeMultiplier(n, num_result_qubits = 2*n)
-    qc.append(multiplier, [*a, *b, *ab])
-    qc.append(MOD_RED(2*n, n, N), [*ab, *abmodn, *anc])
-    qc.append(multiplier.inverse(), [*a, *b, *ab])
+    ancS = QuantumRegister(S)
+    qc = QuantumCircuit(a, b, ab, abmodn, ancS)
+    qc.append(MULTIPLIER, [*a, *b, *ab, *ancS])
+    qc.append(MOD_RED(2*n, n, N), [*ab, *abmodn, *ancS])
+    qc.append(MULTIPLIER.inverse(), [*a, *b, *ab, *ancS])
     return qc.to_gate()
     
-def MUL_ADD_MOD(n, N): #|a> |b> |t> |0^2n> |0^2n> |0^n> -> |a> |b> |(t+ab) mod N |0^2n> |0^2n> |0^n>
+def MUL_ADD_MOD(n, N): #|a> |b> |t> |0^n> -> |a> |b> |(t+ab) mod N> |0^n>
     a = QuantumRegister(n, 'a')
     b = QuantumRegister(n, 'b')
     t = QuantumRegister(n, 't')
     ab = QuantumRegister(2*n, "ab")
-    anc_ab = QuantumRegister(2*n, "anc_ab")
+    anc_ab = QuantumRegister(S, "anc_ab")
     abmodn = QuantumRegister(n)
     qc = QuantumCircuit(a, b, t, ab)
     qc.append(MOD_MULT(n,N), [*a, *b, *ab, *abmodn, *anc_ab])
@@ -186,8 +186,8 @@ def MOD_PROD(n, N): #|a> |a^-1> |b> |b^-1> |g> -> |a> |a^-1> |ab> |ab^-1> |g>
     b_inv = QuantumRegister(n, "b_inv")
     g = QuantumRegister(n, "g")
     anc1 = QuantumRegister(2*n)
-    anc2 = QuantumRegister(2*n)
-    anc3 = QuantumRegister(n)
+    anc2 = QuantumRegister(n)
+    anc3 = QuantumRegister(S)
     qc = QuantumCircuit(a_n,a_inv, b_n, b_inv, g, anc1, anc2, anc3)
     qc.append(MUL_ADD_MOD(n, N), [*a_n,*b_n,*g, *anc1, *anc2, *anc3])
     qc.append(MUL_ADD_MOD(n, N).inverse(), [*a_inv,*g,*b_n, *anc1, *anc2, *anc3])
@@ -214,7 +214,7 @@ def MSQUARE(n, N): #|a> |a^-1> |0^n> |0^n> |g> |0^n> -> |a> |a^-1> |a^2> |(a^2)^
         qc.cx(a_inv[i], aa_inv[i])
     qc.append(MOD_PROD(n, N), [*a, *a_inv, *anc1, *anc2, *g, *anc1, *anc2, *anc3])
     return qc.to_gate()
-
+"""
 def CLEAR_LAYER(n, N, a, ainv): #|a> |a_inv> |0^n> |g> |0 or 1> -> |0^n> |0^n> |0^n> |g> |0 or 1>
     a_n = QuantumRegister(n)
     a_inv = QuantumRegister(n)
@@ -228,7 +228,7 @@ def CLEAR_LAYER(n, N, a, ainv): #|a> |a_inv> |0^n> |g> |0 or 1> -> |0^n> |0^n> |
     qc.append(QCMULT_IP(n, N, a, ainv), [*ctrl, *a_n, *anc, *g, *anc1, *anc2, *anc3]).control(1)
     qc.append(QCMULT_IP(n, N, ainv, a), [*ctrl, *a_inv, *anc, *g, *anc1, *anc2, *anc3]).control(1)
     return qc.to_gate()
-    
+"""
     
     
     
