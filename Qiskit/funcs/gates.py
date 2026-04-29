@@ -158,7 +158,8 @@ def MUL_ADD_MOD(n, N): #|a> |b> |t> |0^n> -> |a> |b> |(t+ab) mod N> |0^n>
     qc.append(IN_PLACE_MODULAR_ADDER(N), [*t, *abmodn])
     qc.append(MOD_MULT(n, N).inverse(), [*a, *b, *abmodn])
     return qc.to_gate()
-        
+
+"""  
 def QCMULT_IP(n, N, a, a_inv): #|x> |0^n> |g> |0> -> |ax mod N> |0^n> |(g * -a^-1) mod N> |0^S> for some a 
     x = QuantumRegister(x, "x")
     a_n = QuantumRegister(n, "a_n")
@@ -178,7 +179,7 @@ def QCMULT_IP(n, N, a, a_inv): #|x> |0^n> |g> |0> -> |ax mod N> |0^n> |(g * -a^-
     qc.append(CMMC(n, 0), [*ctrl, *a_n])
     qc.append(SWAP(), [*x, *g])
     return qc.to_gate()
-
+""" 
 def MOD_PROD(n, N): #|a> |a^-1> |b> |b^-1> |g> -> |a> |a^-1> |ab> |ab^-1> |g>
     a_n = QuantumRegister(n,"a")
     a_inv = QuantumRegister(n, "a_inv")
