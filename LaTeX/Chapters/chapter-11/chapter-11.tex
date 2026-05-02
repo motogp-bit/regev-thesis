@@ -37,44 +37,23 @@
 \end{algorithmic}
 \vspace{2cm}
 The gate operations in the following pseudocodes are defined as follows:\\ 
-Let $\ket{a}$,$\ket{b}$ be some arbitrary states, $\ket{0}$ and $\ket{1}$ to be the 0 and 1 states respectively, and let $\ket{a_n\dots a_2 a_1}$ be the bitwise representation of state $\ket{a}$. Let $f$ be the function that describes the operation that makes the respective qubits into ancillas for each gate.
-
-\textbf{MSQUARE} (Modular Squaring) gate: $$\ket{a} \ket{0} \ket{0} \to^{SQUARE} \ket{a} \ket{a^2 \pmod N} \ket{f(a,N)}$$
+Let $\ket{a}$,$\ket{b}$ be some arbitrary states, $\ket{0}$ and $\ket{1}$ to be the 0 and 1 states respectively, and let $\ket{a_n\dots a_2 a_1}$ be the bitwise representation of state $\ket{a}$. Let $f$ be the function that describes the operation that makes the respective qubits into dirty ancillas for each gate, $0^n$ represent a clean register of size n, and $\ket{g}$ represents a register in some arbitrary state g (essentially an ancilla register that doesn't need to be clean).
 
 \textbf{SWAP} gate: $$\ket{a} \ket{b} \to^{SWAP} \ket{b} \ket{a}$$
 
-\textbf{CMMULTCONST} (Controlled Modular Multiplication by a Constant) gate:\\ 
+\textbf{CMMC} (Controlled Modular Multiplication by a Constant) gate:\\ 
 A gate applied sequentially to all $a_i$ from 1 to n performing
-$$\ket{a_i} \ket{b} \ket{0}\to \ket{a_i} \ket{(c_i^{a_i} \cdot b \pmod N} \ket{f(c_i,a_i,b,N)}$$ for some predetermined classical constants $c_i$ that is unique for each $i$. Evidently, this doesn't represent exponentiating a classical constant by a qubit, but rather the operation where we are either multiplying $b$ by $c_i$ or not, depending on the control qubit $a_i$.
+$$\ket{a_i} \ket{b} \ket{0}\to \ket{a_i} \ket{(c_i^{a_i} \cdot b \pmod N} \ket{f(c_i,a_i,b,N)}$$
+EXPLAIN THIS BETTTER1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-\textbf{QQMULT} (Quantum-Quantum Modular Multiplication) gate: $$\ket{a} \ket{b} \ket{0} \ket{0} \to^{QQMULT} \ket{a} \ket{b} \ket{a \cdot b \pmod N} \ket{f(a,b,N)}$$
+\textbf{QQMULT} (Quantum-Quantum Modular Multiplication) gate (out of place): $$\ket{a} \ket{b} \ket{t} \ket{0^S} \to^{QQMULT} \ket{a} \ket{b} \ket{(t + a \cdot b) \pmod N} \ket{0^S}$$
 
 \textbf{CPR} (Controlled Phase Rotation) gate: $$\ket{a_k} \ket{b_j} \to^{CPR} \ket{a_k} \ket{exp(2\pi i \frac{a_k}{2^{j - k + 1}} b_j} $$
 
-In the pseudocode, $\ket{anc}$ represents some ancilla result used to perform the operation in the gate.
+\textbf{MODPROD} (Modular Product) gate (essentially a form of reversible in-place multiplication)
+$$\ket{a}\ket{a^{-1}} \ket{b} \ket{b^{-1} \ket{g} \ket{0^S}} \to^{MODPROD} \ket{a}\ket{a^{-1}} \ket{ab} \ket{(ab)^{-1}} \ket{g} \ket{0^S}$$
 
-\noindent\textbf{Algorithm 5.2: Quantum Modular multi-exponentiation}
-\begin{algorithmic}[1]
-\State \textbf{Input}: D Quantum registers $\ket{e_1,e_2,\dots, e_d}$ in a 
-superposition where the $e_i$ are $L$ qubit numbers, bases $b_1, b_2, \dots ,b_d$, $N$
-\State \textbf{Output}: A quantum register holding $\prod_j b_j^{e_j}$ where $e_j$ are in superposition
-\State Let $e_{i,j}$ being the $i_{th}$ qubit of the $j_{th}$ register.
-\State$\ket{acc} \gets \ket1$  
-\For{$i$ from $L$ to $0$}:
-    \State $\ket{acc_{sq}} \gets \ket0$
-    \State $\ket{acc} \ket{acc_{sq}}\ket{0} \to^{MSQUARE} \ket{acc}\ket{acc_{sq}} \ket{anc}$
-    \State $\ket{acc} \ket{acc_{sq}} \to^{SWAP} \ket{acc} \ket{acc_{sq}}$
-    \State Uncompute $\ket{acc_{sq}}$
-    \State $\ket{P_{b_j}} \gets \ket{1}$
-    \For{$j$ from 0 to $d-1$}:
-        \State $\ket{e_{i,j}} \ket{P_{b_j}} \ket{0} \to^{CMMULTCONST} \ket{e_{i,j}} \ket{P_{b_j}} \ket{anc}$
-    \EndFor
-    \State $\ket{acc} \ket{P_{b_j}} \ket{rst} \ket{0}  \to^{QQMMULT} \ket{acc}\ket{P_{b_j}} \ket{rst} \ket{anc}$
-    \State $\ket{acc} \ket{rst} \to^{SWAP} \ket{acc} \ket{rst}$
-    \State Uncompute $\ket{P_{b_j}}, \ket{rst}$
-\EndFor
-\State \Return $\ket{acc}$
-\end{algorithmic}
+\textbf{MSQUARE} (Modular Squaring) gate: $$\ket{a} \ket{a} \to^{MSQUARE} \ket{a} \ket{a^2 \pmod N}$$
 
 
 

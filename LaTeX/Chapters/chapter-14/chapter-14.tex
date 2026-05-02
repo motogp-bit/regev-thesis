@@ -3,7 +3,7 @@
 The first optimization we are going to talk about has to do with transforming the base in which we represent the numbers in a base that is perhaps more suited when dealing with exponents. To do this, we will entice the amateur mathematics enthusiast by bringing the Fibonacci numbers and Fibonacci sequence into the picture.
 To explore this concept, first we will need to talk about Zeckendorf's theorem. The statement is the following:\\
 
-$\textbf{Lemma 15.1 (Zeckendorf)}$\\
+$\textbf{Lemma 15.1 (Zeckendorf)}:$\\
 Every positive integer $k$ can be uniquely represented as a sum of non-consecutive Fibonacci numbers.In other word, for every $k \in \mathbb{Z}$:
 \begin{equation}
     k = \sum_j c_jFi, \: c_j \in \set{0,1}
@@ -41,52 +41,51 @@ Assume the greedy algorithm in the previous step leaves us with a Fibonacci repr
 \end{algorithmic}
 \end{algorithm}
 
-This algorithm, however, poses a problem. First, note that gates in a quantum circuit must  necessarily be reversible, else there is no way of undoing a computation to in order to clear the quantum register. Step 3 on a quantum level means performing the computation $$(a, b) \mapsto(a, ab\mod N)$$. This is different than the QQMULT gate from Regev because we actually modify one of the multiplicands instead -this is called in-place modular multiplication, compared to Regev's out-of-place modular multiplication. The inverse gate is $$(a, b) \mapsto(a, a^{-1}b \mod N)$$ Setting $b = 1$, this is equivalent to computing an inverse modulo N, meaning Step 3 requires a computation that is at least as hard as that. This is not an asy computation to make by any means. \footnote{see section 1.3 in Ragavan and Vaikuntanathan's paper \cite{RagavanVaikuntanathan2023} for more information}.\\
-
-
 
 Consider the original Regev product $\prod_{i=1}^d b_i^{e_i}$ (the algorithm is also compatible with the $D/2$ shift). Suppose we have a Fibonacci representation of $e_i$ 
 \begin{equation}
-    \prod_{j=1}^m c_{i,j} F_j
+    e_i = \prod_{j=1}^m c_{i,j} F_j
 \end{equation}
 where $c_{i,j}$ denotes each of the earlier $c_j$ but now for every base. Then we can plug \textbf{Eq 15.2} into the Regev product and write the resulting expression - which is \textbf{equivalent} to the Regev product, as follows: $$\prod_{j=1}^m(\prod_{i=1}^d b_i^{c_{i,j}})^ {F_j}$$
 Denote the inner product as $C_j$. This leaves us with
 \begin{equation}
     \prod_{j=1}^m C_j^ {F_j}
 \end{equation}
-Then, the inverse of $C_j$ modulo N is 
-\begin{equation}
-    C_j^{-1} = \prod_{i=1}^d b_i^{-c_{i,j}} = \prod_{i=1}^d b_i^{-1} \cdot \prod_{i=1}^d b_i^{1 -c_{i,j}}
-\end{equation}
-The first term is a constant that can be precomputed classically, since we decide what the $b_i$ will be before the algorithm starts, using the extended Euclidean algorithm. Since $c_{i,j} \in \set{0,1}$, the second term is also easy to compute by applying Algorithm 3 with all $c_i$ bit flipped. Given a precomputation of the modular inverses of the bases $b_i$ modulo N, in Lemmas 5.1 and 5.2 of \cite{RagavanVaikuntanathan2023}, we are provided with the proof for the existence of a circuit that, given $a, b, a^{-1},b^{-1}$ in quantum registers, produces quantum registers that include $ab$ alongside $(ab)^{-1}$. This means we can drag $C_j$ and $C_j^{-1}$ along for the entirety of the circuit.
+
+What we need to do here essentially is compute this over all possible $C_j$ in superposition,  raise $C_j$ to the power of the next Fibonacci number, and do this over and over until $F_j > 2^d$. To compute the $C_j$, we can basically do exactly what we did in Chapter 13 for modular multi-exponentiation - precompute the inverses, build the tree, multiply into the accumulator, uncompute the tree. 
+
+Where this logic shines however, is with regards to squaring. In our implementation, we had to use a different algorithm for squaring. However, we don't actually need to square when representing numbers in the Fibonacci base. Consider what happens if we sequentially applied our MOD-PROD gate to some arbitrary  $\ket{a} \ket{a}$: \\
+
+1.$\ket{a} \ket{a^{-1}} \ket{a} \ket{a^{-1}} \to \ket{a} \ket{a^{-1}} \ket{a^2} \ket{(a^{2})^{-1}}$\\
+2.$\ket{a} \ket{a^{-1}} \ket{a^2} \ket{(a^{2})^{-1}} \to \ket{a^3} \ket{(a^{3})^{-1}} \ket{a^2} \ket{(a^{2})^{-1}}$\\
+3.$\ket{a^3} \ket{(a^{3})^{-1}} \ket{a^2} \ket{(a^{2})^{-1}} \to \ket{a^3} \ket{(a^{3})^{-1}} \ket{a^5} \ket{(a^{5})^{-1}}$\\
+
+Notice the Fibonacci sequence appearing in the exponents! Now we have a reversible base accessing operation that doesn't leave us with dirty qubits in every iteration. More importantly, it seems that this can actually decrease the qubit count using the optimized multi-exponentiation idea from Chapter 7 with the reduced register sizes, because we won't need the extra $O(n^{3/2})$ qubits to perform squaring anymore.
 
 Let us, finally, describe Algorithm 5.2 from Ragavan and Vaikuntanathan\cite{RagavanVaikuntanathan2023} in terms of what we wrote earlier. It is important to note that this is applied to the shifted exponent $e_i = c_i + D/2$.
 
 \begin{algorithm}[H]
 \caption{Fibonacci multi-exponentiation (top-down)}
-\textbf{Input:} Initial quantum state $\ket{e}$, precomputed $B = \prod_{i=1}^d b_i^{-1}$\\
+\textbf{Input:} Initial quantum state $\ket{e}$\\
 \textbf{Output:} State consisting of a superposition $\prod_{i=1}^d b_i^{e_i} \pmod N$
 \begin{algorithmic}[1]
-\State Compute $c_{i,j}$ according to our initial algorithm.
-\State $R_1 \gets 1$, $R_2 \gets 1$
-\For {$j = m$ downto 1}
-    \State $R_1 \gets R_1R_2$
-    \State Compute $\ket{\prod_{i=1}^d b_i^{1 -c_{i,j}}}$
-    \State Use $B$ to convert the previous state into $\ket{C_j^{-1} \pmod N}$
-    \State Compute the state $\ket{C_j}$. 
-    \State $R_1 \gets R_1C_j$
-    \State Uncompute $\ket{C_j}$ using $\ket{C_j^{-1}}$
-    \State Swap $R_1$ and $R_2$ (the registers that contain the superpositions created for both)
+\State Compute $c_{i,j}$ in superposition according to our initial algorithm.
+\State $R \gets 1$
+\For {$j = 0$ to $m$}
+    \State Compute $\ket{C_j}$ in the manner we described in Chapter 13, entangling $the e_i$ in a superposition.
+    \State Run the multiplication circuit on $C_j$ and $C_j^{-1}$ j times to get the next Fibonacci base
+    \State $R \gets RC_j^{F_j}$
+    \State Run the multiplication circuit again $j$ times to turn $\ket{C_j^ {F_j}} \ket{C_j^{-F_j}} \to \ket{C_j} \ket{C_j^{-1}}$  
+    \State Uncompute the intermediate nodes used to compute $\ket{C_j}$ using $\ket{C_j^{-1}}$
 \EndFor
-\State $R_2$ is now entangled with $\ket{e}$, and holds the superposition of the possible products.
-\State \Return $R_2$
+\State $R_1$ is now entangled with $\ket{e}$, and holds the superposition of the possible products.
+\State \Return $R$
 \end{algorithmic}
 \end{algorithm}
 
-We can think of $C_j$ as a multiplication factor that is applied in each individual step, just as Regev would apply, for example, $b_1b_3b_4$. It is very important that we go top-down, because it means that when inverting the multiplication factor, the values we remove aren't required for the later registers - they are used up and can be safely "destroyed" by inversion without affecting the entangled superposition. The operation performed in each step is essentially $R_1 \gets R_1 R_2 C_j$, so we accumulate the existing product by the next Fibonacci number and the multiplication factor, and then we swap the registers so that $R_1$ always has the previous value at the end of the loop.
+We can think of $C_j$ as a multiplication factor that is applied in each individual step, just as Regev would apply, for example, $b_1b_3b_4$.
 
-We avoided thorough analysis of the qubit requirements here because, although they constitute a significant part of why everything is done the way it is, explaining them thoroughly would take incredibly long. All that needs to be said is that, given that a black box multiplication circuit that performs
-$$\ket{a} \ket{b} \ket{t} \ket{0^S} \to \ket{a} \ket{b} \ket{t+ ab} \ket{0^S}$$ requires $S = log_2N + A$ qubits ($A$ refers to the ancillas) and $G$ gates, the above algorithm can be executed with $S + (A/log\phi + 6 + O(1))n$ qubits and $O(\sqrt{n}G + n^{3/2})$ gates, which for the classical Van Der Hoeven algorithm for multiplication\cite{HarveyVanDerHoeven2021} is equivalent to $O(nlogn)$ qubits and $O(n^{3/2} logn)$ gates, achieving a significant improvement over Regev's $O(n^{3/2})$ qubits.
+We should mention that the classical postprocessing differs a bit, specifically the part we outlined in Chapter 10. With respect to complexity, given a circuit that implements something similar to $\textbf{Eq 13.2}$ with $S = n+ O(1)$ qubits and $G$ gates, the above algorithm can be executed with $S + (A/log\phi + 6 + O(1))n$ qubits and $O(\sqrt{n}G + n^{3/2})$ gates assuming an arbitrary multiplication circuit. Assuming we adapt the classical Van Der Hoeven algorithm for multiplication\cite{HarveyVanDerHoeven2021}, this is equivalent is equivalent to $O(nlogn)$ qubits and $O(n^{3/2} logn)$ gates, achieving a significant improvement over Regev's $O(n^{3/2})$ qubits.
 
 
 

@@ -45,12 +45,41 @@ Here we should remind the reader that the measurement probability of a specific 
     A(\mathbf{y}) = \frac{e^\frac{{2\pi i \langle \mathbf{t},\mathbf{y}} \rangle}{D}}{\sqrt{D^d}} \sum_{\mathbf{z}_\Lambda \in \Lambda \cap K - \mathbf{t}} \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) e^{2\pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D} 
 \end{equation}
 
-Suppose some vector $\mathbf{w} = \mathbf{y} / D$. By the definition of the inner product,  $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer if and only if $\langle \mathbf{z}_\Lambda,\mathbf{w} \rangle$ is also an integer. The second statement is just the definition of a dual lattice vector. To show that these vectors will also by definition be measured the most often by observing that the amplitude is maximal when $exp(2 \pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D)$ is 1 across all inputs, since the gaussian is independent of $\mathbf{y}$. This is equivalent to the sum only containing vectors with amplitude 1. It is easy to see that this only happens when $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer.
+Suppose some vector $\mathbf{w} = \mathbf{y} / D$. By the definition of the inner product,  $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer if and only if $\langle \mathbf{z}_\Lambda,\mathbf{w} \rangle$ is also an integer. To show that vectors satisfying this condition will also by definition be measured the most often, we can observe that the amplitude is maximal when $exp(2 \pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D)$ is 1 across all inputs, since the gaussian is independent of $\mathbf{y}$. This is equivalent to the sum only containing vectors with amplitude 1. It is easy to see that this only happens when $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer. Furthermore, $\langle \mathbf{z}_\Lambda,\mathbf{w} \rangle \in \mathbb{Z}$ is exactly the definition of a dual lattice vector.
 
-Now, regarding \textbf{Eq 8.5}, note that the constant global phase outside the sum doesn't affect the measurement probability because it represents a vector of length 1 whose phase depends on $\mathbf{y}$ (and hence squares to 1), and the denominator $\sqrt{D^d}$ is the same for all $\mathbf{y}$. It turns out that if $\lVert \mathbf{t} \rVert <<R$, then the mean of the gaussian isn't affected much and we have $$ \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) \approx \rho_R(\mathbf{z}_\Lambda)$$ This is precisely why we centered our gaussian at 0: now the smallest vectors will have the biggest weights.
+Now, regarding \textbf{Eq 8.5}, note that the constant global phase outside the sum doesn't affect the measurement probability because it represents a vector of length 1 with only its phase being dependent on $\mathbf{y}$ (and so $\lvert e^\frac{{2\pi i \langle \mathbf{t},\mathbf{y}} \rangle}{D} \rvert = 1$, and the denominator $\sqrt{D^d}$ is the same for all $\mathbf{y}$. It turns out that if $\lVert \mathbf{t} \rVert <<R$, then the mean of the gaussian isn't affected much and we have $$ \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) \approx \rho_R(\mathbf{z}_\Lambda)$$ This is precisely why we centered our gaussian at 0: now the smallest vectors will have the biggest weights.
 
 Combining the two facts above, we get that $\lvert A^2(\mathbf{y}) \rvert$ is maximal for short vectors of the dual lattice. In fact, the smaller $R$ 
 (the standard deviation) is, the shorter our vectors will end up being. It can't be too small though, else we might outweigh the exponential factor and get non-dual lattice vectors, purely because they are short. We will therefore be tuning $R$ - Regev \cite{Regev2025} claims that a value $R>\sqrt{2d}$ guarantees with almost certainty that we get dual lattice vectors, and specifically recommends using $R = e^{Cd}$ for some constant C.
+
+Below we have pseudocode for the QFT over $Z^d_D$. We use the Hadamard gate H, which should be well known to the reader, and gates SWAP and CPR that perform the following statetransitions:
+
+\textbf{SWAP} gate: $$\ket{a} \ket{b} \to^{SWAP} \ket{b} \ket{a}$$
+
+\textbf{CPR} (Controlled Phase Rotation) gate on two qubits: $$\ket{a_k} \ket{b_j} \to^{CPR} exp(2\pi i \frac{a_k b_j 2^{k+j}}{D})\ket{a_k} \ket{b_j} $$
+
+
+
+
+\noindent\textbf{Algorithm 5.3: Quantum Fourier Transform over $Z^d_D$}
+\begin{algorithmic}[1]
+\State \textbf{Input}:Quantum registers consisting of $\ket{e_1,e_2,\dots, e_d}$ in a 
+superposition where the $e_i$ are $L$ qubit numbers, $D$.
+\State \textbf{Output}: The result of the QFT in the same registers.
+\State Let $e_{i,j}$ being the $i_{th}$ qubit of the $j_{th}$ register, from MSB to LSB.
+\For{$j$ from 1 to $d$}:
+    \For{$i$ from $1$ to $L$}:
+        \State $\ket{e_{i,j}} \to^{H} \ket{e_{i,j}}$
+            \For {$k$ from $i+1$ to $L$}
+                \State $\ket{e_{i,j}}\ket{e_{k,j}} \to^{CPR(e_{k,j},e_{i,j})} (\ket{e_{i,j}})\ket{e_{k,j}}$ 
+        \EndFor
+    \EndFor
+    \For{$i$ from $1$ to $\lfloor L/2 \rfloor$}
+        \State $\ket{e_{i,j}}\ket{e_{L-i+1, j}} \to^{SWAP} \ket{e_{i,j}} \ket{e_{L-i+1, j}}$
+    \EndFor
+\EndFor
+
+\end{algorithmic}
 
 
 

@@ -1,10 +1,85 @@
-\chapter{Qiskit}
+\chapter{Qiskit and complexity}
 
 The code used here is available on github (GITHUB LINK)
 
 Notice that the D/2 shift doesn't appear anywhere in our code, besides determining the amplitudes for the gaussian. That is because in practice, we don't need to implement an actual shift: the product is computed using the shifted indices, the QFT ignores the shift, and the matrix $\Lambda'$ is simply normalized to [0,1).
 
-In our implementation, we used for simplicity a binary tree with control-x gates and QFT-based $O(n^2)$ quantum-quantum multiplication. Our main registers for the multiplication $acc,acc_{sq}$ and $rst$ need n qubits each, and we also need $O(n)$ qubits for the exponents (since the maximum exponent is $L\approx O(\sqrt{n})$ bits and we have d exponent registers). For the binary tree, we have d leaves, with the registers varying in size and only reaching size n when (and if) the product exceeds N. 
+Most of the gate implementations were borrowed from \cite{RagavanVaikuntanathan2023}, as it turned out to be the only (to our knowledge) reliable source outlining the way such a circuit could be implemented. The authors attempt to avoid in-place quantum-quantum multiplication in the multi-exponentiation step, due to the heavy gate count. Following their example, we also refrain from using it. We retain the following notation from this paper: 
 
-Note that there are, as we said in chapter 10, ways of dropping squaring (and multiplication in general) down to $O(nlogn)$, with an increase in classical memory, like Schonhage-Strassen or windowed QFT with CP gates that have multiple controls (we will present a promising idea that is somewhat similar to the second in chapter 15). For code readability and due to lack of available libraries, we chose $O(n^2)$ QFT-based multiplication instead.
+$\ket{a}$ is some arbitrary state.\\
+$\ket{0^{cn}}$ refers to $c \cdot n$ qubits initialized to the 0 state.\\
+$\ket{g^n}$ refers to $n$ dirty ancilla qubits initialized to some arbitrary state.\\ 
+
+
+Let us describe the modular exponentiation procedure. The main ingredient we will use to perform modular multi-exponentiation is the function MOD-PROD.\\
+MOD-PROD executes the following state transition:
+\begin{equation}
+    \ket{a} \ket{a^{-1}} \ket{b} \ket{b^{-1}} \ket{g^n} \ket{0^{5n}} \to \ket{a} \ket{a^{-1} } \ket{ab} \ket{(ab)^{-1}} \ket{g^n} \ket{0^{5n}}
+\end{equation}
+
+Notice also what happens when we apply MODPROD to the new state with the first two input registers flipped: $$\ket{a^{-1}} \ket{a} \ket{ab} \ket{(ab)^{-1}} \ket{g^n} \ket{0^{5n}} \to \ket{a^{-1}} \ket{a}  \ket{b} \ket{b^{-1}} \ket{g^n} \ket{0^{5n}}$$ This shows us that we can recursively uncompute our exponentiation tree by repeatedly applying this operation. 
+
+MOD-PROD makes 6 calls to the MUL-ADD-MOD circuit and two swaps. MUL-ADD-MOD performs the following state transition:
+\begin{equation}
+    \ket{a}  \ket{b}  \ket{t} \ket{0^{3n + S}} \to \ket{a}  \ket{b}  \ket{(t+ab) \mod N} \ket{0^{3n + S}}
+\end{equation}
+
+This utilizes two calls to an out-of-place modular multiplication circuit and one to an in-place modular adder. More specifically, the out-of-place modular multiplication circuit performs
+\begin{equation}
+    \ket{a}  \ket{b}  \ket{0^{3n + S}} \to \ket{a}  \ket{b}  \ket{(ab) \mod N} \ket{0^{2n + S}}
+\end{equation}
+(more words on such a circuit below) while the in-place modular adder performs
+\begin{equation}
+    \ket{a} \ket{b} \ket{0^n} \to \ket{a} \ket{(a + b) \mod N} \ket{0^n}
+\end{equation} 
+
+The circuit from \textbf{Eq 13.4} could be implemented in the fashion outlined in \cite{Roetteler2017} using addition and reduction, or using a QFT-based adder, while the one in \textbf{Eq 13.3} can be customized to utilize any multiplication algorithm to adjust the qubit/gate tradeoff. 
+
+
+Our binary tree in at first initialized using d control qubits in superposition to either $\ket{1}$ or $\ket{b_i}$. This means that $b_i$ either participates in the product or doesn't. Those qubits are essentially the $i-th$ bit from each of our exponent registers, so for each multiplication step we take the next qubit, which at the end gives us a superposition of all numbers up to $2^d$ in every register (since we don't need to go up to $2^n$ to generate sufficient exponents due to Regev's assumption).
+
+We also keep a list of registers containing the multiplicative inverses of each $b_i$ mod N initialized with the same control qubit as the original $b_i$\\ 
+To do this, we use the CMMC gate, which works as follows:\\
+Suppose we have a control qubit $\ket{ctrl}$ in a Hadamard superposition, a n-bit register $\ket a$ initialized to the 1 state  and a classical constant c. We calculate the bitmask $bm = 1 \oplus c$, and then, for every bit $bm_j$ in $bm$, if $bm_j == 1$, we apply a cx gate with $ctrl$ as control and bit $a_j$ of $\ket a$ as target. This is effectively a controlled multiplication at the end of which $\ket{a}$ will be in a equal superposition of 1 and $c$.
+Accordingly, at the end of the circuit, we use the same gate to uncompute the initial registers, using our precomputed list of inverses.\\
+
+Let us outline below the state transitions that will happen during a factor multiplication step. Suppose $d = 4$, and let $a_{ij}$ denote the j-th bit of the i-th base register. Assume again that all multiplications are mod N. Assume also that we have the accumulator register $\ket{acc}$ along with its inverse $\ket{acc^{-1}}$. Assume also that we have precomputed the multiplicative inverses of each $a_i$ mod N, denoted $a^{-1}_{i}$
+
+1.Apply Hadamard gates to $d$ qubits initialized in the 0 state to put them in superposition.
+
+2.For each $d_i$ of the d Hadamard qubits, apply CMMC with $d_i$ as control and $a_{ij}$ as target constant and again apply CMMC with $d_i$ as control and $a^{-1}_{ij}$ as target constant for every $j$ with $0\leq j < n$. Now we have $2d = 8$ quantum registers each pair of which may or may not contain a base and its inverse.
+
+4.$\ket{a_1} \ket{a_1^{-1}} \ket{a_4} \ket{a_4^{-1}} \ket{a_2} \ket{0^{5n}} \to \ket{a_1} \ket{a_1^{-1} } \ket{a_1 a_4} \ket{(a_1a_4)^{-1}} \ket{a_2} \ket{0^{5n}}$ - $a_2$ plays the role of the dirty ancilla $g$ here.
+
+5. $\ket{a_2} \ket{a_2^{-1}} \ket{a_3} \ket{a_3^{-1}} \ket{a_1} \ket{0^{5n}} \to \ket{a_2} \ket{a_2^{-1} } \ket{a_2 a_3} \ket{(a_2a_3)^{-1}} \ket{a_1} \ket{0^{5n}}$ - $a_1$ plays the role of the dirty ancilla $g$ here.
+
+6.$\ket{a_1 a_4} \ket{(a_1a_4)^{-1}} \ket{a_2 a_3} \ket{(a_2a_3)^{-1}} \ket{a_1} \ket{0^{5n}} \to \\ \ket{a_1 a_4} \ket{(a_1a_4)^{-1}} \ket{a_1a_2a_3a_4} \ket{(a_1a_2a_3a_4)^{-1}} \ket{a_1} \ket{0^{5n}}$. Keep in mind that $\ket{a_1 a_2 a_3 a_4}$ is essentially a superposition of all possible products between those 4 numbers - $a_i$ simply represents what is contained in the register, which could be 1 or $a_i$. 
+
+7. $\ket{a_1a_2a_3a_4} \ket{(a_1a_2a_3a_4)^{-1}} \ket{acc} \ket{acc^{-1}} \ket {a} \ket{0^{5n}} \to \\ \ket{a_1a_2a_3a_4} \ket{(a_1a_2a_3a_4)^{-1}} \ket{acc \cdot a_1a_2a_3a_4} \ket{(acc \cdot a_1a_2a_3a_4)^{-1}} \ket {a} \ket{0^{5n}}$. Now, we uncompute:
+
+8.$\ket{(a_1a_4)^{-1}} \ket{a_1 a_4}  \ket{a_1a_2a_3a_4} \ket{(a_1a_2a_3a_4)^{-1}} \ket{a_1} \ket{0^{5n}} \to \\ \ket{(a_1a_4)^{-1}} \ket{a_1 a_4} \ket{a_2 a_3} \ket{(a_2a_3)^{-1}} \ket{a_1} \ket{0^{5n}}$
+
+9. $\ket{a_1^{-1} } \ket{a_1}  \ket{a_1 a_4} \ket{(a_1a_4)^{-1}} \ket{a_2} \ket{0^{5n}} \to \ket{a_1^{-1} } \ket{a_1}  \ket{a_4} \ket{a_4^{-1}} \ket{a_2} \ket{0^{5n}}$
+
+10.$\ket{a_2^{-1}} \ket{a_2}  \ket{a_2 a_3} \ket{(a_2a_3)^{-1}} \ket{a_1} \ket{0^{5n}} \to \ket{a_2^{-1}} \ket{a_2} \ket{a_3} \ket{a_3^{-1}} \ket{a_1} \ket{0^{5n}}$
+
+Now the registers are reset and ready to reuse for the next iteration, and we have modified the accumulator with our result.
+
+Evidently, since we are uncomputing everything at each iteration, we only need to use the $d$ n-bit original base registers along with their inverses to compute the product. We also need $d$ exponent controls for each of our d multiplications, for a total of $d^3 = n^{3/2}$ qubits.  Our implementation of MOD-PROD will also require at least $3n + S$ clean ancilla qubits, where S is a parameter that will depend on our multiplication circuit and $n$ dirty ones (we can ignore the latter cost by using other registers from our circuit). Therefore, our multi-exponentiation circuit requires space (in the worst case where d is a power of 2) $2 \sqrt{n} \cdot n + n + \sqrt{n} + 3n + S = 2n^{3/2} + 4n + \sqrt{n} + S = O(n^{3/2})$ qubits, where all qubits that don't concern the bases or the exponents will be uncomputed and reused in every multiplication step. Note that implementing the suggestion at the end of Chapter 7 would reduce the dominant term by allowing us to perform multi-exponentiation in $O(d\cdot log^3d)$ according to Regev - over d times that amounts to $O(n\cdot log^3n)$ which is an asymptotic improvement. We will see that it this won't matter in the end, since modular squaring raises our complexity to $O(n^{3/2})$ nonetheless, but it is important to note that this is a complexity analysis of the specific designs presented, and not of Regev's algorithm as a whole, albeit our results are designed to match asymptotically. 
+
+For the modular squaring part, \cite{RagavanVaikuntanathan2023} uses the MOD-PROD gate yet again. However, we want to maintain our binary representation for clarity \footnote{Ragavan and Vaikuntanathan use a Fibonacci base, more on that in Chapter 13}, and because Ragavan's implementation isn't the primary subject for this paper. MOD-PROD still gave us good results for multi-exponentiation, but its main design was to implement reversible squaring using Fibonacci exponents, which we can't do here. Rines and Chuang \cite{RinesChuang2018} show us an alternate way we can do this using $2n + O(logn) = O(n)$ qubits and $O(n^2)$ gates (estimate from page 17 of \cite{RagavanVaikuntanathan2023}) combining QFT multiplication along with Montgomery reduction. This is essentially describing a specific implementation of the circuit in $\textbf{Eq 13.3}$. To remain consistent, due to the fact that the aforementioned paper suggests multiple ways of implementing such a circuit, we omit the implementation of this circuit in our code, instead treating modular squaring as a black box. We will however use those specific requirements to calculate the complexity of our potential implementation.
+
+As we established at the end of Chapter 7, such a circuit will be performed $O(d) = O(n^{1/2})$ times, leaving behind an n-bit register each time, for a total of $O(n^{3/2})$ qubits in circuit depth and space. In total, together with the qubit requirements from the multi-exponentiation, and the n-bit accumulator, it turns out that our qubit requirement for Regev's algorithm is in the order of $O(n^{3/2})$. In terms of gate count, we saw that our bottleneck is squaring, since it forces us to use a specific multiplication algorithm, while for general multiplication we can pick whichever algorithm we want for the 13.3 circuit. Our total gate count counts ends up being dominated by the factor of $O(n^2)$ squarings that are used $O(d) = O(n^{1/2})$ times, for a total of $O(n^{5/2})$ gates, better than Shor's $O(n^3)$. Lastly, by our results in Chapters 6 and 9, setting $k = 4$ gives us a probability that is good enough for all practical purposes. In general, we need $O(d) + $ (some constant number of runs) to have reliable results, so $O(\sqrt{n})$ runs. Summarizing:
+
+Space: $O(n^{3/2})$\\
+Gates: $O(n^{5/2})$\\
+Independent runs: $O(\sqrt{n})$ with high probability\\
+
+which matches Regev's complexity claims from \cite{Regev2025}
+
+
+
+
+
+
 
