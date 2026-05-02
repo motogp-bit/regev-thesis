@@ -7,6 +7,8 @@ def QMME(qc, e_regs, precomputed_bases, N):
     d = len(precomputed_bases)
     n = int(np.ceil(np.log2(N)))
     k = 2
+    bases = b = QuantumRegister(n * d)
+    binv = QuantumRegister(n * d)
     acc = QuantumRegister(n, name='acc')
     acc_inv = QuantumRegister(n, name='temp')
     dirty_ancilla = QuantumRegister(n, name = "da")
@@ -18,7 +20,7 @@ def QMME(qc, e_regs, precomputed_bases, N):
     qc.x(acc[0])
     curr_bit_bases = [precomputed_bases[j][i] for j in range(d)]
     curr_e_bits = [e_regs[j][i] for j in range(d)]
-    qc.append(PMBP(qc, curr_e_bits, curr_bit_bases, n, i, k), [*pmbp_root, *clean_ancilla])
+    qc.append(PMBP(qc, curr_e_bits, curr_bit_bases, n, i, k), [*acc, *acc_inv, *clean_ancilla])
     qc.append(MOD_PROD(n,n,n,N), [*pmbp_root, *clean_ancilla, *acc, *acc_inv, *dirty_ancilla, *clean_ancilla_1])
     qc.append()
     for i in reversed(range(d)):
@@ -36,3 +38,24 @@ def QMME(qc, e_regs, precomputed_bases, N):
         qc.append(qmult_gate.inverse(), [*acc, *pmbp_root_reg, *temp_res])
 
     return qc, acc
+
+def QMME(qc, bases, N, S):
+    n = int(np.ceil(np.log2(N)))
+    d = len(bases)
+    bases_inv = []
+    for base in bases:
+        bases_inv.append(pow(base, -1, N))
+    e_regs = qc.qubits[:n]
+    acc = qc.qubits[n:2*n]
+    accinv = qc.qubits[2*n:3*n]
+    temps = qc.qubits[3*n:2*n*d + 3*n + S]
+    anc = qc.qubits[2*n*d + 3*n + S: 2*n*d + 3*n + S + n*(d-1)]
+    ancinv = qc.qubits[2*n*d + 3*n + S + n*(d-1): 2*n*d + 3*n + S + 2*n*(d-1)]
+    
+    qc.append(PMBP(bases,bases_inv,n ,d, 0, N, S))
+    for j in range(1, d):
+        qc.append(MSQUARE(n, N), [*acc, *accinv, *anc[(j-1)*n:j*n], *ancinv[(j-1)*n:j*n]]) #if MSQUARE requires more ancillas, pass them here
+        qc.append(SWAP(n),[*acc, *anc])
+        qc.append(SWAP(n),[*accinv[(j-1)*n:j*n], *ancinv[(j-1)*n:j*n]])
+        qc.append(PMBP(bases,bases_inv,n ,d, j, N, S),[*e_regs, *acc, *accinv, *temps])
+    return qc
