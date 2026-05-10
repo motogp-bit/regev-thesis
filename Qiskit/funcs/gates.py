@@ -1,6 +1,5 @@
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit
 import numpy as np
-from qiskit.circuit.library import FullAdderGate ,ModularAdderGate, IntegerComparatorGate,HRSCumulativeMultiplier
 
 def CMMC(n, constant, bit):
     qc = QuantumCircuit(n+1)

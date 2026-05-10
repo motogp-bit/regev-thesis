@@ -1,6 +1,5 @@
-from qiskit import QuantumCircuit, QuantumRegister
-import numpy as np
-from gate_defs import *
+from qiskit import QuantumCircuit
+from gates import CMMC, MOD_PROD
 
 def PMBP(bases, inv_bases, n, d, iteration, N, S):
     qc = QuantumCircuit(2*n*d + 4*n + S)
@@ -11,7 +10,7 @@ def PMBP(bases, inv_bases, n, d, iteration, N, S):
     binv = qc.qubits[3*n + n*d:3*n + 2*n*d]
     acc = qc.qubits[2*n*d + n: 2*n*d + 2*n]
     acc_inv = qc.qubits[2*n*d + 2*n: 2*n*d + 3*n]
-    anc = QuantumRegister[2*n*d + 3*n:2*n*d + 6*n + S]
+    anc = qc.qubits[2*n*d + 3*n:2*n*d + 6*n + S]
     for j in range(d):
         qc.append(CMMC(n, bases[j], iteration), [controls[d * j + iteration], *b[j*n:(j + 1)*n]])
         qc.append(CMMC(n, inv_bases[j], iteration), [controls[d * j + iteration], *binv[j*n:(j + 1)*n]])

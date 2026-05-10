@@ -1,6 +1,6 @@
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.quantum_info import Statevector
+from qiskit.circuit.libraries import QFT
 from funcs import *
 import math
 from sympy import Matrix
@@ -9,7 +9,7 @@ from qiskit_aer import AerSimulator
 from qiskit import transpile
 
 backend = AerSimulator()
-Ns = 446393 #p = 509, q = 877, d = 5
+#Ns = 446393 #p = 509, q = 877, d = 5
 N = 77 #11*7, d = 3
 n = int(np.ceil(np.log2(N)))
 d = int(np.sqrt(n))
@@ -18,6 +18,8 @@ k = 4
 T = 1
 primes = []
 current = 2
+S = n + 3
+
 while len(primes) < d:
     if is_prime(current):
         primes.append(current)
@@ -40,19 +42,19 @@ samples = []
 amps_nd = gaussian(n, D / 2, R, d)
 for _ in range(d + k):
 
-    regs = [QuantumRegister(n, f'dim_{i}') for i in range(d)]
+    e_regs = [QuantumRegister(n, f'dim_{i}') for i in range(d)]
     product = QuantumRegister(n, 'product')
 
     cr_e = ClassicalRegister(n * d, 'cr_e')
     cr_p = ClassicalRegister(n, 'cr_p')
 
-    qc = QuantumCircuit(*regs, product, cr_e, cr_p)
+    qc = QuantumCircuit(*e_regs, product, cr_e, cr_p)
     qc.initialize(amps_nd, qc.qubits[:n*d])
 
-    qc, product = QMME(qc, regs, get_bases(N, d, primes, 2), N)
+    qc, acc= QMME(qc, get_bases(N, d, primes, 2), N, S)
 
-    qc.measure(product, cr_p)
-
+    qc.measure(acc, cr_p)
+    regs = [e_regs[j*n:(j+1)*n] for j in range(d)]
     for reg in regs:
         qc.append(QFT_gate, reg)
 
@@ -72,17 +74,15 @@ for _ in range(d + k):
 b = get_bases(N, d, primes, 1)
 samples = [[x / D for x in row] for row in samples]
 m = []
-for i in range(2 * d + k):
+for i in range(2*d + k):
     temp = []
-    for j in range(d + k):
+    for j in range(2* d + k):
         if i == j:
-            if i > d:
+            if j > d:
                 temp.append(1/delta)
             else:
                 temp.append(1)
-        elif (i <= d and j <= d) or (i > d and j > d):
-            temp.append(0)
-        elif i <= d and j > d:
+        elif (j > d) or (i < (d+k)):
             temp.append(0)
         else:
             temp.append(samples[i-d][j] / delta)
@@ -98,7 +98,7 @@ for i in range(len(exps)):
 for cand in cands:
     X = 1
     for i in range(d):
-        X *= pow(b[i],cand[i],N) #classical modular exponentiation
+        X = (X * pow(b[i],int(cand[i]),N)) % N 
     p = math.gcd(X-1, N)
     if p > 1 and p < N:
         print(p)

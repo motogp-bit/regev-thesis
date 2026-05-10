@@ -41,23 +41,12 @@ Let $\ket{a}$,$\ket{b}$ be some arbitrary states, $\ket{0}$ and $\ket{1}$ to be 
 
 \textbf{SWAP} gate: $$\ket{a} \ket{b} \to^{SWAP} \ket{b} \ket{a}$$
 
-\textbf{CMMC} (Controlled Modular Multiplication by a Constant) gate:\\ 
-A gate applied sequentially to all $a_i$ from 1 to n performing
-$$\ket{a_i} \ket{b} \ket{0}\to \ket{a_i} \ket{(c_i^{a_i} \cdot b \pmod N} \ket{f(c_i,a_i,b,N)}$$
-EXPLAIN THIS BETTTER1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-\textbf{QQMULT} (Quantum-Quantum Modular Multiplication) gate (out of place): $$\ket{a} \ket{b} \ket{t} \ket{0^S} \to^{QQMULT} \ket{a} \ket{b} \ket{(t + a \cdot b) \pmod N} \ket{0^S}$$
 
 \textbf{CPR} (Controlled Phase Rotation) gate: $$\ket{a_k} \ket{b_j} \to^{CPR} \ket{a_k} \ket{exp(2\pi i \frac{a_k}{2^{j - k + 1}} b_j} $$
 
-\textbf{MODPROD} (Modular Product) gate (essentially a form of reversible in-place multiplication)
-$$\ket{a}\ket{a^{-1}} \ket{b} \ket{b^{-1} \ket{g} \ket{0^S}} \to^{MODPROD} \ket{a}\ket{a^{-1}} \ket{ab} \ket{(ab)^{-1}} \ket{g} \ket{0^S}$$
-
-\textbf{MSQUARE} (Modular Squaring) gate: $$\ket{a} \ket{a} \to^{MSQUARE} \ket{a} \ket{a^2 \pmod N}$$
 
 
-
-\noindent\textbf{Algorithm 5.3: Quantum Fourier Transform}
+\noindent\textbf{Algorithm 5.2: Quantum Fourier Transform}
 \begin{algorithmic}[1]
 \State \textbf{Input}:Quantum registers consisting of $\ket{e_1,e_2,\dots, e_d}$ in a 
 superposition where the $e_i$ are $L$ qubit numbers, $N$.
@@ -77,3 +66,13 @@ superposition where the $e_i$ are $L$ qubit numbers, $N$.
 
 \end{algorithmic}
 
+Our algorithm implementation will also be based on the following circuits, which we will treat as black boxes:
+
+$\textbf{Modular Adder (Out-of-Place)}$:
+$$\ket{a} \ket{b} \ket{0^n} \to \ket{a} \ket{b} \ket{a + b \pmod N}$$
+
+$\textbf{Modular Multipier (Out-of-Place)}$:
+$$\ket{a} \ket{b} \ket{0^n} \to \ket{a} \ket{b} \ket{a \cdot b \pmod N}$$
+
+$\textbf{Modular Squarer (Out-Of-Place)}$ \footnote{Could be implemented using the modular multiplier.}
+$$\ket{a} \ket{0^n} \to \ket{a \ket{a^2 \pmod N}}$$
