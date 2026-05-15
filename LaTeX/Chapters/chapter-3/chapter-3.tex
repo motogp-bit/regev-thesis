@@ -2,7 +2,7 @@
 
 The complexity of the quantum subroutine is the bottleneck of the algorithm. Gidney and Ekera \cite{GidneyEkera2021} applied a variant of Shor's algorithm\footnote{Original algorithm is due to Ekera and Hastad from 2017, see citation [25] in the paper cited}that requires $O(n)$ qubits for the exponent register.
 
-Now,we have $O(n)$ qubits for the exponent register, another $O(n)$ for the function register \cite{Shor1997}, and $O(n)$ ancilla qubits for the modular exponentiation,addition and multiplication \cite{Roetteler2017}. That gives us a total of $O(3n) = O(n)$ qubits for space complexity. The best optimized version, Beauregard's construction, uses $2n+3$ qubits
+Now,we have $O(n)$ qubits for the exponent register, another $O(n)$ for the function register \cite{Shor1997}, and $O(n)$ ancilla qubits for the modular exponentiation,addition and multiplication \cite{Roetteler2017}. That gives us a total of $O(3n) = O(n)$ qubits for space complexity. The best optimized version, Beauregard's construction, uses $2n+3$ qubits.
 
 In terms of gate complexity, we need to perform approximately $O(n)$ multiplications that can be performed in $O(n^2)$ gates \cite{Regev2025} using optimized schoolbook multiplication, for a total of $O(n^3)$ gates. QFT with approximations requires $O(nlogn)$ gates \cite{NamSuMaslov2020},and the continued fractions step requires approximately $O(n^2)$ classical bit operations\cite{AdamczewskiBugeaud2005}. The dominant term is of course $O(n^3)$ 
 

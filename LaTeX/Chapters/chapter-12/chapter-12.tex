@@ -21,12 +21,13 @@ Notice also what happens when we apply MODPROD to the new state with the first t
 
 MOD-PROD makes 6 calls to the MUL-ADD-MOD circuit and two swaps. MUL-ADD-MOD performs the following state transition:
 \begin{equation}
-    \ket{a}  \ket{b}  \ket{t} \ket{0^{3n + S}} \to \ket{a}  \ket{b}  \ket{(t+ab) \mod N} \ket{0^{3n + S}}
+    \ket{a}  \ket{b}  \ket{t} \ket{0^{2n + A}} \to \ket{a}  \ket{b}  \ket{(t+ab) \mod N} \ket{0^{2n + A}}
 \end{equation}
 
-This utilizes two calls to an out-of-place modular multiplication circuit and one to an in-place modular adder.As stated in the previous chapter, the out-of-place modular multiplication circuit performs
+We will use this circuit as a black box, as Ragavan and Viswantanathan do.
+A potential implementation two calls to an out-of-place modular multiplication circuit and one to an in-place modular adder, so multiply ->add -> invert multiplication. The out-of-place modular multiplication circuit performs
 \begin{equation}
-    \ket{a}  \ket{b}  \ket{0^{3n + S}} \to \ket{a}  \ket{b}  \ket{(ab) \mod N} \ket{0^{2n + S}}
+    \ket{a}  \ket{b}  \ket{0^{n + A}} \to \ket{a}  \ket{b}  \ket{(ab) \mod N} \ket{0^{A}}
 \end{equation}
 (more words on such a circuit below), while the in-place modular adder performs
 \begin{equation}
@@ -65,7 +66,7 @@ Let us outline below the state transitions that will happen during a factor mult
 
 Now the registers are reset and ready to reuse for the next iteration, and we have modified the accumulator with our result.
 
-Evidently, since we are uncomputing everything at each iteration, we only need to use the $d$ n-bit original base registers along with their inverses to compute the product. We also need $d$ exponent controls for each of our d multiplications, for a total of $d^3 = n^{3/2}$ qubits.  Our implementation of MOD-PROD will also require at least $3n + S$ clean ancilla qubits, where S is a parameter that will depend on our multiplication circuit and $n$ dirty ones (we can ignore the latter cost by using other registers from our circuit). Therefore, our multi-exponentiation circuit requires space (in the worst case where d is a power of 2) $2 \sqrt{n} \cdot n + n + \sqrt{n} + 3n + S = 2n^{3/2} + 4n + \sqrt{n} + S = O(n^{3/2})$ qubits, where all qubits that don't concern the bases or the exponents will be uncomputed and reused in every multiplication step. Note that implementing the suggestion at the end of Chapter 7 would reduce the dominant term by allowing us to perform multi-exponentiation in $O(d\cdot log^3d)$ according to Regev - over d times that amounts to $O(n\cdot log^3n)$ which is an asymptotic improvement. We will see that it this won't matter in the end, since modular squaring raises our complexity to $O(n^{3/2})$ nonetheless, but it is important to note that this is a complexity analysis of the specific designs presented, and not of Regev's algorithm as a whole, albeit our results are designed to match asymptotically. 
+Evidently, since we are uncomputing everything at each iteration, we only need to use the $d$ n-bit original base registers along with their inverses to compute the product. We also need $d$ exponent controls for each of our d multiplications, for a total of $d^3 = n^{3/2}$ qubits.  Our implementation of MOD-PROD will also require at least $3n + S$ clean ancilla qubits, where S is a parameter that will depend on our multiplication circuit and $n$ dirty ones (we can ignore the latter cost by using other registers from our circuit). Therefore, our multi-exponentiation circuit requires space (in the worst case where d is a power of 2) $2 \sqrt{n} \cdot n + \sqrt{n} + 2n + A = 2n^{3/2} + 4n + \sqrt{n} + S = O(n^{3/2})$ qubits, where all qubits that don't concern the bases or the exponents will be uncomputed and reused in every multiplication step. Note that implementing the suggestion at the end of Chapter 7 would reduce the dominant term by allowing us to perform multi-exponentiation in $O(d\cdot log^3d)$ according to Regev - over d times that amounts to $O(n\cdot log^3n)$ which is an asymptotic improvement. We will see that it this won't matter in the end, since modular squaring raises our complexity to $O(n^{3/2})$ nonetheless, but it is important to note that this is a complexity analysis of the specific designs presented, and not of Regev's algorithm as a whole, albeit our implementation is designed to match asymptotically. 
 
 For the modular squaring part, \cite{RagavanVaikuntanathan2023} uses the MOD-PROD gate yet again. However, we want to maintain our binary representation for clarity \footnote{Ragavan and Vaikuntanathan use a Fibonacci base, more on that in Chapter 13}, and because Ragavan's implementation isn't the primary subject for this paper. MOD-PROD still gave us good results for multi-exponentiation, but its main design was to implement reversible squaring according to Ragavan's method, which we can't do here. The goal is, as we referenced in the previous chapter, to implement a circuit performing
 
