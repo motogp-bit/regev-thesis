@@ -45,8 +45,9 @@ Assume the greedy algorithm in the previous step leaves us with a Fibonacci repr
 Consider the original Regev product $\prod_{i=1}^d b_i^{e_i}$ (the algorithm is also compatible with the $D/2$ shift). Suppose we have a Fibonacci representation of $e_i$ 
 \begin{equation}
     e_i = \prod_{j=1}^m c_{i,j} F_j
+    \label{eq15.2}
 \end{equation}
-where $c_{i,j}$ denotes each of the earlier $c_j$ but now for every base. Then we can plug \textbf{Eq 15.2} into the Regev product and write the resulting expression - which is \textbf{equivalent} to the Regev product, as follows: $$\prod_{j=1}^m(\prod_{i=1}^d b_i^{c_{i,j}})^ {F_j}$$
+where $c_{i,j}$ denotes each of the earlier $c_j$ but now for every base. Then we can plug \eqref{eq15.2} in the place of each exponent and write the resulting expression - which is \textbf{equivalent} to the Regev product, as follows: $$\prod_{j=1}^m(\prod_{i=1}^d b_i^{c_{i,j}})^ {F_j}$$
 Denote the inner product as $C_j$. This leaves us with
 \begin{equation}
     \prod_{j=1}^m C_j^ {F_j}
@@ -85,7 +86,7 @@ Let us, finally, describe Algorithm 5.2 from Ragavan and Vaikuntanathan\cite{Rag
 
 We can think of $C_j$ as a multiplication factor that is applied in each individual step, just as Regev would apply, for example, $b_1b_3b_4$.
 
-We should mention that the classical postprocessing differs a bit, specifically the part we outlined in Chapter 10. With respect to complexity, given a circuit that implements something similar to $\textbf{Eq 13.2}$ with $S = n+ O(1)$ qubits and $G$ gates, the above algorithm can be executed with $S + (A/log\phi + 6 + O(1))n$ qubits and $O(\sqrt{n}G + n^{3/2})$ gates assuming an arbitrary multiplication circuit. Assuming we adapt the classical Van Der Hoeven algorithm for multiplication\cite{HarveyVanDerHoeven2021}, this is equivalent is equivalent to $O(nlogn)$ qubits and $O(n^{3/2} logn)$ gates, achieving a significant improvement over Regev's $O(n^{3/2})$ qubits.
+We should mention that the classical postprocessing differs a bit, specifically the part we outlined in Chapter 10. With respect to complexity, given a circuit that implements something similar to $\eqref{eq13.2}$ with $S = n+ O(1)$ qubits and $G$ gates, the above algorithm can be executed with $S + (A/log\phi + 6 + O(1))n$ qubits and $O(\sqrt{n}G + n^{3/2})$ gates assuming an arbitrary multiplication circuit. Assuming we adapt the classical Van Der Hoeven algorithm for multiplication\cite{HarveyVanDerHoeven2021}, this is equivalent to $O(nlogn)$ qubits and $O(n^{3/2} logn)$ gates, achieving a significant improvement over Regev's $O(n^{3/2})$ qubits.
 
 
 

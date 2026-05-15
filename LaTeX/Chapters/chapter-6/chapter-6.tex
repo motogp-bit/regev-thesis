@@ -68,7 +68,7 @@ A way we could optimize that by seeing that not every register needs to have siz
     \# qubits < 2.93p_d
 \end{equation}
 
-where $p_d$ is the d-th prime number. Regev explicitly mentions this optimization in his paper, emphasizing the importance of multiplying small numbers with small numbers and how it affects space complexity due to using smaller registers, however the amount of register management required to perform multiplications of varied size in each step would make our code practically unreadable, hence we chose leave that to more practical implementations. It does need to be said that this, according to Regev in Chapter 3 Eq 6 \cite{Regev2025}, allows us to implement the multi-exponentiation circuit in $O(dlog^3d)$.
+where $p_d$ is the d-th prime number. Regev explicitly mentions this optimization in his paper, emphasizing the importance of multiplying small numbers with small numbers and how it affects space complexity due to using smaller registers, however the amount of register management required to perform multiplications of varied size in each step would make our code practically unreadable, hence we chose leave that to more practical implementations. It does need to be said that this, according to Regev in \textbf{Chap 3 Eq 6} \cite{Regev2025}, allows us to implement the multi-exponentiation circuit in $O(dlog^3d)$.
 
 
 

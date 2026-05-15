@@ -18,6 +18,7 @@ Rewriting $\rho_R(\mathbf{z})$ in terms of the shifted exponents, the following 
 \cite{Regev2009}. Now, let's say we have a lattice $\Lambda \subset \mathbb{Z}^n_N$ and some coset of $\Lambda$ $\Lambda_{\mathbf{t}} = \set{\Lambda + \mathbf{t}}$ with representative $\mathbf{t}$, where $\mathbf{t} \in \mathbb{Z}^n$, but crucially $\mathbf{t} \notin \Lambda$. This represents $\Lambda$ shifted by some arbitrary vector $\mathbf{t}$. Through some procedure which will be described in the actual algorithm chapter, suppose this state is transformed to be proportional (equivalent up to normalization) to $\psi_1$, where
 \begin{equation}
    \ket{\psi_1} = \sum_{\mathbf{z} \in \Lambda_t \cap K} \rho_R(\mathbf{z})\ket{\mathbf{z}})
+   \label{eq8.2}
 \end{equation}
 This represents a gaussian shifted with respect to the representative $t$.
 
@@ -33,9 +34,10 @@ This tells us that for large values of $d$, these states are basically the same 
 Lastly, define the QFT over $\mathbb{Z}^d_D$, applied on some quantum state $\ket{x}$, is as follows:
 \begin{equation}
     \ket{\mathbf{x}} \mapsto \frac{1}{\sqrt{D^d}} \sum_{\mathbf{y} \in \mathbb{Z}^d_D} e^{2\pi i \langle \mathbf{x,y} \rangle /D} \ket{\mathbf{y}}
+    \label{eq8.4}
 \end{equation}
 
-Let us now finally apply the operator from \textbf{Eq 8.4} to \textbf{Eq 8.2}. This results in the following state $\ket{\psi'}$, where
+Let us now finally apply the operator from \eqref{eq8.4} to \eqref{eq8.2}. This results in the following state $\ket{\psi'}$, where
 $$\ket{\psi'} = \frac{1}{\sqrt{D^d}} \sum_{\mathbf{y} \in \mathbb{Z}^d_D} \sum_{\mathbf{z} \in \Lambda_t \cap K} \rho_R(\mathbf{z}) e^{2\pi i \langle \mathbf{z},\mathbf{y} \rangle / D} \ket{\mathbf{y}}$$
 
 Instead of writing the previous equation like that, note that since $\mathbf{z} \in \Lambda_t$, every $\mathbf{z}$ can be written as $\mathbf{z}_\Lambda + \mathbf{t}$ for some vector $\mathbf{z}_\Lambda$ in $\Lambda$. Now, by linearity of the inner product, we can write $$\langle \mathbf{z},\mathbf{y} \rangle = \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle + \langle \mathbf{t},\mathbf{y} \rangle$$ 
@@ -43,11 +45,12 @@ Instead of writing the previous equation like that, note that since $\mathbf{z} 
 Here we should remind the reader that the measurement probability of a specific vector is equal to the magnitude of the square of the amplitude of said vector in the state, so $\lvert A^2(\mathbf{y})\rvert$ for some vector $\mathbf{y}$. Combining all of these, the amplitude $A(\mathbf{y})$ for any $\mathbf{y}$ in the state $\ket{\psi'}$ is
 \begin{equation}
     A(\mathbf{y}) = \frac{e^\frac{{2\pi i \langle \mathbf{t},\mathbf{y}} \rangle}{D}}{\sqrt{D^d}} \sum_{\mathbf{z}_\Lambda \in \Lambda \cap K - \mathbf{t}} \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) e^{2\pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D} 
+    \label{eq8.5}
 \end{equation}
 
 Suppose some vector $\mathbf{w} = \mathbf{y} / D$. By the definition of the inner product,  $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer if and only if $\langle \mathbf{z}_\Lambda,\mathbf{w} \rangle$ is also an integer. To show that vectors satisfying this condition will also by definition be measured the most often, we can observe that the amplitude is maximal when $exp(2 \pi i \langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D)$ is 1 across all inputs, since the gaussian is independent of $\mathbf{y}$. This is equivalent to the sum only containing vectors with amplitude 1. It is easy to see that this only happens when $\langle \mathbf{z}_\Lambda,\mathbf{y} \rangle / D$ is an integer. Furthermore, $\langle \mathbf{z}_\Lambda,\mathbf{w} \rangle \in \mathbb{Z}$ is exactly the definition of a dual lattice vector.
 
-Now, regarding \textbf{Eq 8.5}, note that the constant global phase outside the sum doesn't affect the measurement probability because it represents a vector of length 1 with only its phase being dependent on $\mathbf{y}$ (and so $\lvert e^\frac{{2\pi i \langle \mathbf{t},\mathbf{y}} \rangle}{D} \rvert = 1$, and the denominator $\sqrt{D^d}$ is the same for all $\mathbf{y}$. It turns out that if $\lVert \mathbf{t} \rVert <<R$, then the mean of the gaussian isn't affected much and we have $$ \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) \approx \rho_R(\mathbf{z}_\Lambda)$$ This is precisely why we centered our gaussian at 0: now the smallest vectors will have the biggest weights.
+Now, regarding \eqref{eq8.5}, note that the constant global phase outside the sum doesn't affect the measurement probability because it represents a vector of length 1 with only its phase being dependent on $\mathbf{y}$ (and so $\lvert e^\frac{{2\pi i \langle \mathbf{t},\mathbf{y}} \rangle}{D} \rvert = 1$, and the denominator $\sqrt{D^d}$ is the same for all $\mathbf{y}$. It turns out that if $\lVert \mathbf{t} \rVert <<R$, then the mean of the gaussian isn't affected much and we have $$ \rho_R(\mathbf{z}_\Lambda + \mathbf{t}) \approx \rho_R(\mathbf{z}_\Lambda)$$ This is precisely why we centered our gaussian at 0: now the smallest vectors will have the biggest weights.
 
 Combining the two facts above, we get that $\lvert A^2(\mathbf{y}) \rvert$ is maximal for short vectors of the dual lattice. In fact, the smaller $R$ 
 (the standard deviation) is, the shorter our vectors will end up being. It can't be too small though, else we might outweigh the exponential factor and get non-dual lattice vectors, purely because they are short. We will therefore be tuning $R$ - Regev \cite{Regev2025} claims that a value $R>\sqrt{2d}$ guarantees with almost certainty that we get dual lattice vectors, and specifically recommends using $R = e^{Cd}$ for some constant C.

@@ -81,10 +81,11 @@ For full rank lattices where B is a $n \times n$ matrix, $Vol(\Lambda)$ is \text
 We will not demonstrate the proof here,but an equivalent definition for $Vol(\Lambda)$ is the following:
 \begin{equation}
     Vol(\Lambda) = \prod_{i=1}^d \lVert \mathbf{b}_i' \rVert
+    \label{eq9.2}
 \end{equation}
 It should be noted that an interpretation of the 2-D determinant is that it represents the area of the parallelogram formed by the basis vectors. In n dimensions,the parallelogram becomes a parallelepiped formed by the n basis vectors,and area corresponds to volume. In general, $Vol$ can be thought of as a generalization of the determinant when there aren't necessarily enough vectors to span the whole space, so the volume of the parallelepiped formed by whatever vectors exist in our $B$.
 
-Suppose we restrict the value computer in \textbf{Eq 9.2} to being the product of only $j$ terms, with $j < d$. Then let $Vol_j(\Lambda)$ be the volume of the parallelepiped formed by the first j basis vectors.
+Suppose we restrict the value computer in \eqref{eq9.2} to being the product of only $j$ terms, with $j < d$. Then let $Vol_j(\Lambda)$ be the volume of the parallelepiped formed by the first j basis vectors.
 
 This means that the i-th term in the $D(d)$ product essentially represents the product squared volumes of the parallelepipeds formed by the first i basis vectors, so $(Vol_i(\Lambda))^2$. The value for the exponent is simply a weight with respect to the order of the vectors: earlier vectors and their parallelepiped volumes affect the value more.
 
@@ -95,14 +96,15 @@ Let $\mathbf{b}_1$ be the first (and therefore shortest) vector in the LLL basis
 Also let $m(\Lambda)$ be the length of the smallest nonzero vector of $\Lambda$. In mathematical terms, $$m(\Lambda) = min\set{\lVert \mathbf{x} \rVert ^2 \: s.t. \mathbf{x} \in \Lambda, \mathbf{x} \neq \mathbf{0}}$$ Then, the following bound holds:
 
 \begin{equation}
-    \lVert \mathbf{b}_1 \rVert \leq 2^{(d-1)/2} \lVert m(\Lambda)\rVert \\
+    \lVert \mathbf{b}_1 \rVert \leq 2^{(d-1)/2} \lVert m(\Lambda)\rVert 
+    \label{eq9.3}
 \end{equation}
 
 This essentially states the first vector is not much larger than the shortest vector of the lattice. This is important because the reason we are using LLL in our larger scheme is not to get a LLL-reduced basis, but rather to solve SVP to some approximation factor. By taking every vector in the LLL-reduced basis that satisfies our bound, LLL inadvertedly provides a polynomial-time solution to this problem.
 
 It should be mentioned that LLL's complexity is approximately $O(d^5 log^3((max (\lVert v_i \rVert))$ where d is the dimension of the input vectors. For this reason, we prefer inputting shorter vectors into $LLL$. One got therefore get a sense of the steps we will be performing in Regev's algorithm by immediately thinking back to the gaussian in the previous chapter and how it increased the probability of shorter vectors.
 
-Lastly, we need to explain why we are even trying to find a reduced basis in the first place. In chapter 6, we talked about "making sure the vectors are as short as possible". Let us forget the modular world for a second - after all, LLL tries to minimize the size of the vectors, not the size of the product. Consider the equations $X \equiv 1 \pmod N$ This is equivalent to saying $$X = mN + 1$$ for some $m \in \mathbb{Z}$. This equation is minimized at $\lvert m \rvert = 1$ ($m = 0$ would correspond to the zero vector, but LLL by definition only finds non-zero vectors). The smallest possible values for the trivial solutions therefore correspond to the values $\lvert X\rvert  = N+1 $ and $\lvert X \rvert = N - 1$. On the contrary, the non-trivial solutions satisfy the equation $$X^2 = mN + 1$$ The smallest possible values for the non-trivial solutions correspond to some value $X \approx \sqrt{N}$.  Since the bases stay constant, the value of $X$ depends on how short the exponent vector is. This means that shorter exponent vectors are more likely to correspond to non-trivial solutions. In fact, the bound Regev talks about, e.e. $\lVert \mathbf{z} \rVert \leq 2^{O(d)}$ is directly derived from the bound in \textbf{Eq 9.3}. Evidently, assuming we construct the right lattice to account for noise, we can run LLL on it to get our desired result.
+Lastly, we need to explain why we are even trying to find a reduced basis in the first place. In Chapter 6, we talked about "making sure the vectors are as short as possible". Let us forget the modular world for a second - after all, LLL tries to minimize the size of the vectors, not the size of the product. Consider the equations $X \equiv 1 \pmod N$ This is equivalent to saying $$X = mN + 1$$ for some $m \in \mathbb{Z}$. This equation is minimized at $\lvert m \rvert = 1$ ($m = 0$ would correspond to the zero vector, but LLL by definition only finds non-zero vectors). The smallest possible values for the trivial solutions therefore correspond to the values $\lvert X\rvert  = N+1 $ and $\lvert X \rvert = N - 1$. On the contrary, the non-trivial solutions satisfy the equation $$X^2 = mN + 1$$ The smallest possible values for the non-trivial solutions correspond to some value $X \approx \sqrt{N}$.  Since the bases stay constant, the value of $X$ depends on how short the exponent vector is. This means that shorter exponent vectors are more likely to correspond to non-trivial solutions. In fact, the bound Regev talks about, e.e. $\lVert \mathbf{z} \rVert \leq 2^{O(d)}$ is directly derived from the bound in \eqref{eq9.3}. Evidently, assuming we construct the right lattice to account for noise, we can run LLL on it to get our desired result.
 
 
 

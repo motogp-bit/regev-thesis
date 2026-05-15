@@ -52,9 +52,10 @@ Next, it is important to prove the following statement:
 \textbf{Lemma 5.2} The set of vectors $V$ with entries $v_i \in \set{0,1\dots N-1}$ such that for a fixed set of bases $b_1,b_2\dots b_d$ it holds that
 \begin{equation}
     \prod_{i=1}^d b_i^{v_i} = 1 \pmod N
+    \label{eq5.4}
 \end{equation}
 
-forms a subgroup of $\mathbb{Z}^d$ under vector addition, and therefore a lattice.\footnote{Eq 5.4 is a linear congruence in disguise. To see that, consider what happens when taking the logarithm of both sides.} 
+forms a subgroup of $\mathbb{Z}^d$ under vector addition, and therefore a lattice.\footnote{\eqref{eq5.4} is a linear congruence in disguise. To see that, consider what happens when taking the logarithm of both sides.} 
 
 \textit{Proof:} Clearly, $V \subseteq \mathbb{Z}^d$. Consider the requirements for $V$ to be a group:\\
 
@@ -66,9 +67,9 @@ Identity element: setting $\mathbf{v = 0}$ satisfies the relationship.
 
 Associativity is inherited by the parent group.
 
-Therefore, the set of all vectors whose coordinates satisfy \textbf{Eq 5.4} forms a finite lattice $\Lambda$, and our proof is complete.
+Therefore, the set of all vectors whose coordinates satisfy \eqref{eq5.4} forms a finite lattice $\Lambda$, and our proof is complete.
 
- Consider that a finite n-dimensional lattice modulo N whose elements are vectors that satisfy the congruence in \textbf{Eq 5.4} is a subgroup of the group of all vectors with integer coordinates mod N (denoted $Z_N^n$), so we can define a coset of that lattice with respect to that group accordingly. Crucially, replacing 1 with $u$ for some arbitrary $u \in \mathbb{Z}_N$ defines a coset whose representative is some exponent vector $\mathbb{t}$ that represents the exact shift that needs to be applied to the $v_i$ to get $u$ instead of 1. This will come into importance later.
+ Consider that a finite n-dimensional lattice modulo N whose elements are vectors that satisfy the congruence in \eqref{eq5.4} is a subgroup of the group of all vectors with integer coordinates mod N (denoted $Z_N^n$), so we can define a coset of that lattice with respect to that group accordingly. Crucially, replacing 1 with $u$ for some arbitrary $u \in \mathbb{Z}_N$ defines a coset whose representative is some exponent vector $\mathbb{t}$ that represents the exact shift that needs to be applied to the $v_i$ to get $u$ instead of 1. This will come into importance later.
  
 Lastly, in our next chapters we will be discussing a lot the notion of a dual lattice. Let us define that here:\\
 

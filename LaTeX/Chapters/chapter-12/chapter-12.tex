@@ -1,6 +1,6 @@
 \chapter{Qiskit and complexity}
 
-The code used here is available on github (GITHUB LINK)
+The program code is available on \href{https://github.com/motogp-bit/regev-thesis}{github}.
 
 Notice that the D/2 shift doesn't appear anywhere in our code, besides determining the amplitudes for the gaussian. That is because in practice, we don't need to implement an actual shift: the product is computed using the shifted indices, the QFT ignores the shift, and the matrix $\Lambda'$ is simply normalized to [0,1).
 
@@ -22,19 +22,22 @@ Notice also what happens when we apply MODPROD to the new state with the first t
 MOD-PROD makes 6 calls to the MUL-ADD-MOD circuit and two swaps. MUL-ADD-MOD performs the following state transition:
 \begin{equation}
     \ket{a}  \ket{b}  \ket{t} \ket{0^{2n + A}} \to \ket{a}  \ket{b}  \ket{(t+ab) \mod N} \ket{0^{2n + A}}
+    \label{eq13.2}
 \end{equation}
 
 We will use this circuit as a black box, as Ragavan and Viswantanathan do.
 A potential implementation two calls to an out-of-place modular multiplication circuit and one to an in-place modular adder, so multiply ->add -> invert multiplication. The out-of-place modular multiplication circuit performs
 \begin{equation}
     \ket{a}  \ket{b}  \ket{0^{n + A}} \to \ket{a}  \ket{b}  \ket{(ab) \mod N} \ket{0^{A}}
+    \label{eq13.3}
 \end{equation}
 (more words on such a circuit below), while the in-place modular adder performs
 \begin{equation}
     \ket{a} \ket{b} \ket{0^n} \to \ket{a} \ket{(a + b) \mod N} \ket{0^n}
+    \label{eq13.4}
 \end{equation} 
 
-The circuit from \textbf{Eq 13.4} could be implemented in the fashion outlined in \cite{Roetteler2017} using addition and reduction, or using a QFT-based adder, while the one in \textbf{Eq 13.3} can be customized to utilize any multiplication algorithm to adjust the qubit/gate tradeoff. 
+The circuit from \eqref{eq13.4} could be implemented in the fashion outlined in \cite{Roetteler2017} using addition and reduction, or using a QFT-based adder, while the one in \eqref{eq13.3} can be customized to utilize any multiplication algorithm to adjust the qubit/gate tradeoff. 
 
 
 Our binary tree in at first initialized using d control qubits in superposition to either $\ket{1}$ or $\ket{b_i}$. This means that $b_i$ either participates in the product or doesn't. Those qubits are essentially the $i-th$ bit from each of our exponent registers, so for each multiplication step we take the next qubit, which at the end gives us a superposition of all numbers up to $2^d$ in every register (since we don't need to go up to $2^n$ to generate sufficient exponents due to Regev's assumption).

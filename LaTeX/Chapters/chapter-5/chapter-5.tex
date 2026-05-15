@@ -8,18 +8,19 @@ Now, let $b_1,b_2,\dots ,b_d$, be the first $d$ primes in order. Let $X$ be defi
     X \equiv b_1^{z_1}b_2^{z_2}\dots b_d^{z_d} \pmod n = \prod_{i=1}^d b_i ^{z_i} \pmod n
 \end{equation}
 
-for some $z_i \in \mathbb{Z}$. Suppose $\mathbf{z} = (z_1,z_2,\dots,z_d)$ is a vector in $\mathbb{Z}^d$. The set of all vectors $\mathbf{z}$ satisfying the modular multiplicative congruence $X^2 \equiv 1 \pmod N$ form a lattice which we will call $\mathit \Lambda$ \footnote{The square can be transferred to the bases to construct an equation reminiscent of \textbf{Eq 5.4}}. Furthermore, a sublattice of $\mathit \Lambda$ can be constructed by the set of all vectors $\mathbf{z}$ which satisfy the congruence $X = \pm 1 \pmod n$. We will call that sublattice $\mathit \Lambda_0$, and denote by $\Lambda / \Lambda_0$ the set of vectors that are in $\mathit \Lambda$ but not $\mathit \Lambda_0$. 
+for some $z_i \in \mathbb{Z}$. Suppose $\mathbf{z} = (z_1,z_2,\dots,z_d)$ is a vector in $\mathbb{Z}^d$. The set of all vectors $\mathbf{z}$ satisfying the modular multiplicative congruence $X^2 \equiv 1 \pmod N$ form a lattice which we will call $\mathit \Lambda$. Furthermore, a sublattice of $\mathit \Lambda$ can be constructed by the set of all vectors $\mathbf{z}$ which satisfy the congruence $X = \pm 1 \pmod n$. We will call that sublattice $\mathit \Lambda_0$, and denote by $\Lambda / \Lambda_0$ the set of vectors that are in $\mathit \Lambda$ but not $\mathit \Lambda_0$. 
 
 It is easy to see that finding a vector in $\Lambda / \Lambda_0$ is equivalent to finding a non-trivial factor of $N$. This is because $N$ will then divide the product $(X-1)(X+1)$ but will not divide either of the terms, and therefore, as explained in Chapter 1, computing $\gcd(X-1,N)$ gives us the nontrivial factor. A consequence of the Chinese Remainder Theorem is that for a number with $k$ distinct prime factors, there are $2^{k}$ possible solutions to the congruence for $\mathit \Lambda$. In our case, this means that there are 4 possible solutions. The congruence for $\mathit \Lambda_0$ will obviously only have 2 solutions regardless of $k$. This means that half of our solutions are trivial! To avoid trivial solutions, Regev’s algorithm requires the existence of a vector $\mathbf{z}$ where \footnote{For an explanation regarding this bound, go to the end of Chapter 9}. 
 
 \begin{equation}
     \lVert \mathbf{z} \rVert \leq 2^{O(d)}
+    \label{eq6.2}
 \end{equation}
 
 
 At the time of the original paper's publication, however, the only guarantee that a sufficiently small vector would exist is a result found in the following paper \cite{LamzouriLiSoundararajan2015}.
 
-\textbf{Lemma 6.1}: A vector satisfying \textbf{Eq 6.2} can be guaranteed to exist if the following upper bound holds
+\textbf{Lemma 6.1}: A vector satisfying \eqref{eq6.2} can be guaranteed to exist if the following upper bound holds
 \begin{equation}
     n(p) < (logp)^2
 \end{equation}
@@ -47,7 +48,7 @@ Consider the equation $$X^2 \equiv 1 \pmod N \iff (X-1)(X+1) = k \cdot N = k \cd
 However, if $p \equiv 3 \pmod 4$ and $q \equiv 3 \pmod 4$ and X is a QR, then X cannot be -1 modulo either prime. This is because, under these conditions, -1 is a QNR modulo both $p$ and $q$ \footnote{This proof is based on Legendre symbols, which we encourage the reader to research on their own.}. Then the only possible case is case 1, in which case the algorithm will fail. \\
 Since we cannot know the congruence class of $p$ and $q$ beforehand, we need to guarantee that X is a QNR. Remember that according to fact 1, the least QNR is prime. Therefore if all our primes are  $< n(p)$, they have to all be QRs modulo p (and hence also QRs modulo N, according to fact 2), which makes X a QR and thus the algorithm will fail given $p \equiv 3 \pmod 4$ and $q \equiv 3 \pmod 4$.
 
-This means that assuming GRH, combining the bound from \textbf{Eq 6.2} and the inequality $p \leq \sqrt{N}$, we get $$n(p) < \frac{(logN)^2}{4}$$
+This means that assuming GRH, combining the bound from \eqref{eq6.2} and the inequality $p \leq \sqrt{N}$, we get $$n(p) < \frac{(logN)^2}{4}$$
 
 
 In a followup paper, Cedric Pilatte\cite{Pilatte2024}, using a technique based on zero-density estimates for Dirichlet characters modulo $N$ (the mathematics are beyond the scope of this thesis), proved the following result:
