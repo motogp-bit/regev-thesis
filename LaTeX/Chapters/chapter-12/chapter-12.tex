@@ -2,7 +2,7 @@
 
 The program code is available on \href{https://github.com/motogp-bit/regev-thesis}{github}.
 
-Notice that the D/2 shift doesn't appear anywhere in our code, besides determining the amplitudes for the gaussian. That is because in practice, we don't need to implement an actual shift: the product is computed using the shifted indices, the QFT ignores the shift, and the matrix $\Lambda'$ is simply normalized to [0,1).
+Notice that the D/2 shift doesn't appear anywhere in our code, besides determining the amplitudes for the gaussian. That is because in practice, we don't need to implement an actual shift: the product is computed using the shifted indices, the QFT ignores the shift, and the matrix \textit{M} is simply normalized to [0,1).
 
 Most of the gate implementations were borrowed from \cite{RagavanVaikuntanathan2023}, as it turned out to be the only (to our knowledge) reliable source outlining the way such a circuit could be implemented. The authors attempt to avoid in-place quantum-quantum multiplication in the multi-exponentiation step, due to the heavy gate count. Following their example, we also refrain from using it. We retain the following notation from this paper: 
 
@@ -26,7 +26,7 @@ MOD-PROD makes 6 calls to the MUL-ADD-MOD circuit and two swaps. MUL-ADD-MOD per
 \end{equation}
 
 We will use this circuit as a black box, as Ragavan and Viswantanathan do.
-A potential implementation two calls to an out-of-place modular multiplication circuit and one to an in-place modular adder, so multiply ->add -> invert multiplication. The out-of-place modular multiplication circuit performs
+A potential implementation makes two calls to an out-of-place modular multiplication circuit and one to an in-place modular adder, so multiply -> add -> invert multiplication. The out-of-place modular multiplication circuit performs
 \begin{equation}
     \ket{a}  \ket{b}  \ket{0^{n + A}} \to \ket{a}  \ket{b}  \ket{(ab) \mod N} \ket{0^{A}}
     \label{eq13.3}
@@ -47,7 +47,7 @@ To do this, we use the CMMC gate, which works as follows:\\
 Suppose we have a control qubit $\ket{ctrl}$ in a Hadamard superposition, a n-bit register $\ket a$ initialized to the 1 state  and a classical constant c. We calculate the bitmask $bm = 1 \oplus c$, and then, for every bit $bm_j$ in $bm$, if $bm_j == 1$, we apply a cx gate with $ctrl$ as control and bit $a_j$ of $\ket a$ as target. This is effectively a controlled multiplication at the end of which $\ket{a}$ will be in a equal superposition of 1 and $c$.
 Accordingly, at the end of the circuit, we use the same gate to uncompute the initial registers, using our precomputed list of inverses.\\
 
-Let us outline below the state transitions that will happen during a factor multiplication step. Suppose $d = 4$, and let $a_{ij}$ denote the j-th bit of the i-th base register. Assume again that all multiplications are mod N. Assume also that we have the accumulator register $\ket{acc}$ along with its inverse $\ket{acc^{-1}}$. Assume also that we have precomputed the multiplicative inverses of each $a_i$ mod N, denoted $a^{-1}_{i}$
+Let us outline below the state transitions that will happen during a factor multiplication step. Suppose $d = 4$, and let $a_{ij}$ denote the j-th bit of the i-th base register. Assume again that all multiplications are mod N. Assume also that we have the accumulator register $\ket{acc}$ along with its inverse $\ket{acc^{-1}}$. Assume also that we have precomputed the multiplicative inverses of each $a_i$ mod N, denoted $a^{-1}_{i}$.
 
 1.Apply Hadamard gates to $d$ qubits initialized in the 0 state to put them in superposition.
 
@@ -77,7 +77,7 @@ For the modular squaring part, \cite{RagavanVaikuntanathan2023} uses the MOD-PRO
     \ket{a} \ket{0^n} \to \ket{a \ket{a^2 \pmod N}}
 \end{equation}
 
-Rines and Chuang \cite{RinesChuang2018} show us an alternate way we can do this using $2n + O(logn) = O(n)$ qubits and $O(n^2)$ gates (estimate from page 17 of \cite{RagavanVaikuntanathan2023}) combining QFT multiplication along with Montgomery reduction. This is essentially describing a specific implementation of the circuit in $\textbf{Eq 13.3}$. To remain consistent, due to the fact that the aforementioned paper suggests multiple ways of implementing such a circuit, we omit the implementation of this circuit in our code, instead treating modular squaring as a black box. We will however use those specific requirements to calculate the complexity of our potential implementation.
+Rines and Chuang \cite{RinesChuang2018} show us an alternate way we can do this using $2n + O(logn) = O(n)$ qubits and $O(n^2)$ gates (estimate from page 17 of \cite{RagavanVaikuntanathan2023}) combining QFT multiplication along with Montgomery reduction. This is essentially describing a specific implementation of the circuit in $\textbf{Eq 13.3}$. To remain consistent, due to the fact that the aforementioned paper suggests multiple ways of implementing such a circuit, we omit the implementation of this circuit in our code, instead treating modular squaring as a black box. We will, however, use those specific requirements to calculate the potentialcomplexity of our implementation.
 
 As we established at the end of Chapter 7, such a circuit will be performed $O(d) = O(n^{1/2})$ times, leaving behind an n-bit register each time, for a total of $O(n^{3/2})$ qubits in circuit depth and space. In total, together with the qubit requirements from the multi-exponentiation, and the n-bit accumulator, it turns out that our qubit requirement for Regev's algorithm is in the order of $O(n^{3/2})$. In terms of gate count, we saw that our bottleneck is squaring, since it forces us to use a specific multiplication algorithm, while for general multiplication we can pick whichever algorithm we want for the 13.3 circuit. Our total gate count counts ends up being dominated by the factor of $O(n^2)$ squarings that are used $O(d) = O(n^{1/2})$ times, for a total of $O(n^{5/2})$ gates, better than Shor's $O(n^3)$. Lastly, by our results in Chapters 6 and 9, setting $k = 4$ gives us a probability that is good enough for all practical purposes. In general, we need $O(d) + $ (some constant number of runs) to have reliable results, so $O(\sqrt{n})$ runs. Summarizing:
 
