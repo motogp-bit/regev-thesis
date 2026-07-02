@@ -4,7 +4,7 @@ Out of all the monumental achievements in quantum computing and the different al
 
 \chapter{The idea}
 
-First, it is important to define the objective. Given a (usually large) composite number $N$ whose factors are $p$ and $q$ (meaning $N = p\cdot q$), the task is to find the numbers $p$ and $q$. This can in turn be extended to find the full prime factorization of $N$ by recursively applying the algorithm to $p$ and $q$. Hence, we will only be dealing with the case in which $p$ and $q$ are prime numbers. From now and for the entirety of the paper, we define $n = \lceil log_2 N \rceil$ as the number of bits in N.
+First, it is important to define the objective. Given a (usually large) composite number $N$ whose factors are $p$ and $q$ (meaning $N = p\cdot q$), the task is to find the numbers $p$ and $q$. This can in turn be extended to find the full prime factorization of $N$ by recursively applying the algorithm to $p$ and $q$. Hence, we will only be dealing with the case in which $p$ and $q$ are prime numbers. From now and throughout the paper, we define $n = \lceil log_2 N \rceil$ as the number of bits in N.
 
 Furthermore, there are certain trivial cases for $N$. For example, we can easily check whether $N$ is even in $O(logN)$ using Euclid's algorithm, or a prime power ($N = p^k$ for some $p$), with other classical algorithms. This means that we only need to look at the case where $N$ is an odd composite number that is not a prime power.
 
@@ -14,7 +14,7 @@ The classical part of Shor's algorithm begins by picking a random number $a$ wit
 a^r \equiv 1 \pmod N
 \label{eq2.1}
 \end{equation}
-for some $r$ with $1<r<\Phi(N)$\footnote{$r$ is bounded up by $\Phi(N)$ due to Lagrange's theorem}, where r is called the multiplicative order, or \textbf{period}, of $a$ modulo $N$ and $\Phi(N)$ is Euler's totient function. It should be noted that $r$ is defined to be the smallest possible number that satisfies \eqref{eq2.1}.
+for some $r$ with $1<r<\Phi(N)$\footnote{$r$ is bounded up by $\Phi(N)$ due to Lagrange's theorem}, where r is called the multiplicative order, or \textbf{period}, of $a$ modulo $N$ and $\Phi(N)$ is Euler's totient function. It should be noted that $r$ is defined as the smallest possible number that satisfies \eqref{eq2.1}.
 
 In this case, Shor's algorithm applies a quantum subroutine to find $r$. We will analyze this subroutine in the following chapter, as it directly ties into Regev's algorithm.
 
@@ -25,10 +25,10 @@ N\mid(a^{r/2} - 1)(a^{r/2} + 1)
 \label{eq2.2}
 \end{equation}
 
-From \eqref{eq2.2}, a few things can be seen. First,our logic from now on will only work for even $r$. In the case that $r$ happens to be odd, Shor picks a new $a$, computes a new $r$,and relies on probabilistically finding an even $r$.
+From \eqref{eq2.2}, a few things can be seen. First, our logic from now on will work only for even $r$. In the case that $r$ happens to be odd, Shor picks a new $a$, computes a new $r$,and relies on probabilistically finding an even $r$.
 
 
-Also, it cannot be the case that $N\mid(a^{r/2} - 1)$, since that would imply that $a^{r/2} \equiv 1\: \pmod N$, which contradicts the assumption that $r$ is the smallest possible number that satisfies \eqref{eq2.1}. At this point,we have two possibilities:either $N\mid(a^{r/2} + 1)\implies a^{r/2} \equiv -1 \pmod N$ ,in which case $\gcd(a^{r/2} -1,N) = 1$, and we don't have any nontrivial factors, or  $N\nmid(a^{r/2} + 1)\implies a^{r/2} \not\equiv -1 \pmod N$ ,and therefore $d = gcd(a^{r/2} -1,N)$ is a nontrivial prime factor of $N$,with the other being $N/d$, and the algorithm is finished.
+Also, it cannot be the case that $N\mid(a^{r/2} - 1)$, since that would imply that $a^{r/2} \equiv 1\: \pmod N$, which contradicts the assumption that $r$ is the smallest possible number that satisfies \eqref{eq2.1}. At this point,we have two possibilities: $N\mid(a^{r/2} + 1)\implies a^{r/2} \equiv -1 \pmod N$ ,in which case $\gcd(a^{r/2} -1,N) = 1$, and we do not have any nontrivial factors, or $N\nmid(a^{r/2} + 1)\implies a^{r/2} \not\equiv -1 \pmod N$ ,and therefore $d = gcd(a^{r/2} -1,N)$ is a nontrivial prime factor of $N$,with the other being $N/d$, and the algorithm is finished.
 
 To summarize the steps we just described:\\
 1.Pick a number $a$ between 2 and $N$\\

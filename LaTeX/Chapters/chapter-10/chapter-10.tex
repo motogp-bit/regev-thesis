@@ -7,10 +7,10 @@ Regev's algorithm can therefore be summarized in the following 12 steps. Let som
 3. Measure the product register to obtain some value $u$. This forces the d exponent registers to collapse into a superposition of vectors that satisfy $\prod_{i=1}^d a_i^{e_i} =u$. This represents some coset $\mathit {\Lambda}_t$ of the lattice $\mathit \Lambda$ formed by the vectors that satisfy the above relation for $u = 1$ (Chapter 5).\\
 4. Apply QFT to the vector registers. This turns the superposition of the d registers into a superposition of dual lattice vectors, and the representative $t$ into a phase applied to the dual lattice vectors.\\
 5. Measure the vector registers, obtaining a d-dimensional vector, and divide the result by $D$ to get a sample of $\Lambda^*$.\\
-6. Repeat steps 1 through 5 $d+k$ times to get $d+k$ samples and use them to create a basis of $\Lambda'$.\\
-7. Solve SVP on $\mathit \Lambda'$ using LLL, acquiring vectors $\mathbf{e',e'',e''',}\dots$ etc. with coordinates $e'_1 \dots e'_d, e''_1\dots e''_d$ etc. that satisfy the bound from Chapter 9\\
+6. Repeat steps 1 through 5 $d+k$ times to get $d+k$ samples and use them to create a basis of $\Lambda'$, akin to the procedure described in Chapter 10.\\
+7. Solve SVP on the basis of $\mathit \Lambda'$ using LLL, acquiring vectors $\mathbf{e',e'',e''',}\dots$ etc. with coordinates $e'_1 \dots e'_d, e''_1\dots e''_d$ etc. that satisfy the bound from Chapter 10.\\
 8.For each candidate $\mathbf{e} \in \set{\mathbf{e',e'',e''',\dots}}$ in order, do the following\\
-9.Compute $X = \prod_{i=1}^d b_i^{e_{i}} \pmod N$
+9.Compute $X = \prod_{i=1}^d b_i^{e_{i}} \pmod N$\\
 10. Compute $\gcd(X-1,N)$ to get a factor of N.\\
 11. If the factor is trivial, try the next candidate.\\
 12. If all factors are trivial, run the algorithm again.

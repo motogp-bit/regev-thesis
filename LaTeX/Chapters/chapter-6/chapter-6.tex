@@ -1,19 +1,11 @@
 \chapter{Multiplication of small numbers}
 
 
-Regev further presents us with a potential efficient way we could compute the product $$X =\prod_{i=1}^d b_i^{e_i} \pmod N$$ To do this, he combines two ideas that stem from fast multiplication algorithms.
+Regev presents us further with a potential way we could compute the product $$X =\prod_{i=1}^d b_i^{e_i} \pmod N$$ efficiently. To do this, he combines two ideas that come from fast multiplication algorithms.
 
-The first idea is the, by now well known, modular exponentiation algorithm. Suppose we need to compute some large power $k$ of a small number $x$ modulo N where $N > 1$, so $x^k \pmod N$. Let for example $k = 13$. To compute $x^{13}$, we work as follows.
+The first idea is the, by now well known, modular exponentiation algorithm for classical computing. This algorithm works by iterating through the binary digits of a number and repeatedly executing a modular multiplication by the corresponding power of 2 (when the digit is 1) and a modular squaring.
 
-$\mathbf{2.1}$ Define two classical registers. One will hold the base, and another will hold the running total. Initialize the base register to $x \pmod n$, and the running total to 1.\\
-$\mathbf{2.2}$ Find the binary representation of 13, which is $1101_2$. We will have as many steps as there are numbers in the binary representation, in this case 4.\\
-$\mathbf{2.3}$ Examining the digits \textbf{right to left}, do the following:\\
-$\mathbf{2.3.1}$ Look at the digit.If the digit is 1, we multiply the running total by the base register and store the result in the running total. If the digit is 0, we do nothing.\\ 
-$\mathbf{2.3.2}$ If this is the last digit,terminate the algorithm.\\
-$\mathbf{2.3.3}$ Square the base register.\\
-$\mathbf{2.3.4}$ Repeat from 2.3.1 until there are no more digits left.\\
-
-Below is pseudocode of the algorithm. 
+Below is pseudocode for modular exponentiation
 
 \begin{algorithm}[H]
 \caption{Modular Exponentiation}
@@ -38,10 +30,10 @@ Below is pseudocode of the algorithm.
 
 This speeds up exponentiation modulo m from requiring $k-1$ multiplications in the naive case, to $O(logk)$.
 
-Now, this works fine for the 1-dimensional exponentiation case, but our accumulating step contains a product of multiple registers that may or may not contribute to the product. Say we have e.g. $a_1\dots a_8$ in ascending order of value, and we want the product $a_1a_2a_3a_4a_5a_6a_7a_8$. The naive way of computing it would be to multiply $a_1a_2$, then product $a_1a_2$ with $a_3$ and so on. Regev proposes that it is much more efficient to do $$((a_1a_8)(a_2a_7))((a_3a_6)(a_4a_5))$$ in a binary tree fashion, since you are always multiplying small numbers with small numbers.
+Now, this works fine for the 1-dimensional exponentiation case, but our accumulating step contains a product of multiple registers that may or may not contribute to the product. Suppose we have, e.g. $a_1\dots a_8$ in ascending order of value, and we want the product $a_1a_2a_3a_4a_5a_6a_7a_8$. The naive way of computing it would be to multiply $a_1a_2$, then multiply the  product $a_1a_2$ with $a_3$ and so on. Regev proposes that it is much more efficient to do $$((a_1a_8)(a_2a_7))((a_3a_6)(a_4a_5))$$ in a binary tree fashion, since you are always multiplying small numbers with small numbers.
 
 Let us combine the two ideas into an algorithm that computes $\prod{b_i^{e_i}} \pmod N$.
-We will describe the way the algorithm would compute a product like $a_1^{13} a_2^9 a_3^3 a_4^6 \pmod N$. The binary representations of the exponents are as follows $13 = 1101_2$ $9 = 1001_2$ $3 = 0011_2$ $6 = 0110_2$. This time,we will only use one register $rt$ for the result, which we we will initialize to 1.\\
+We will describe the way the algorithm would compute a product such as $a_1^{13} a_2^9 a_3^3 a_4^6 \pmod N$. The binary representations of the exponents are as follows $13 = 1101_2$ $9 = 1001_2$ $3 = 0011_2$ $6 = 0110_2$. We inititalize a register $rt$ to 1.\\
 
 \textbf{Step 1.}Examine the first bit. $13$ and $9$ have 1, so $rt \gets a_1a_2 \cdot rt \pmod N$.\\
 \textbf{Step 2.}Square the result,so $rt \gets rt \cdot rt \pmod N$.\\
@@ -58,17 +50,17 @@ Current state of result: $rt = a_1^{12}a_2^8a_3^2a_4^6$.\\
 Current state of result: $rt = a_1^{13}a_2^9a_3^3a_4^6$.\\
 \textbf{Step 8.}No more bits in the binary representation, so the algorithm terminates.\\
 
-In our algorithm, we will want to produce every possible combination of exponents in superposition, which we will do by creating superpositions using controlled multiplications in each multi-exponentiation step where each base may or may not appear in the product - repeatedly applying this procedure along with the squarings will give us all possible exponents in the end. We analyze the complexity of this procedure thoroughly in Chapter 14. For now, it is important to mention that we need to square $log_2z$ times, where $z$ is the largest exponent in the product. There is one multi-exponentiation step for each squaring step, and one more at the end, so $log_2z + 1$ multi-exponentiations. From regev's assumption, we get $log_2z = O(d)$.
+In our algorithm, we will want to produce every possible combination of exponents in superposition, which we will do by creating superpositions using controlled multiplications in each multi-exponentiation step where each base may or may not appear in the product - repeatedly applying this procedure along with the squarings will give us all possible exponents in the end. We analyze the complexity of this procedure thoroughly in Chapter 14. For now, it is important to mention that we need to square $log_2z$ times, where $z$ is the largest exponent in the product. There is one multi-exponentiation step for each squaring step, and one more at the end, so $log_2z + 1$ multi-exponentiations. From Regev's assumption, we get $log_2z = O(d)$.
 
 It should be noted here that most optimizations of Regev's algorithm that have come out to this day are concerned with optimizing this specific operation in terms of gates and/ or qubits. We describe the two most important ones in chapters 15 and 16. 
 
-A way we could optimize that by seeing that not every register needs to have size n. We can compute exactly how many qubits each of our product registers will need by simply summing the length of the respective multiplicands, and allocate them accordingly. In Regev's algorithm, the bases we will use are the squares of the first $d$ primes, and so, using the Prime Number Theorem, an upper bound for the total size of the first layer is $$\# qubits < 2\cdot 1.01624\cdot p_d \cdot log_2{e}$$ which can be rewritten as
+We could optimize that by noticing that not every register needs to have size n. We can compute exactly how many qubits each of our product registers will need by simply summing the length of the respective multiplicands and allocate them accordingly. In Regev's algorithm, the bases we will use are the squares of the first $d$ primes, and so, using the Prime Number Theorem, an upper bound for the total size of the first layer is $$\# qubits < 2\cdot 1.01624\cdot p_d \cdot log_2{e}$$ which can be rewritten as
 
 \begin{equation}
     \# qubits < 2.93p_d
 \end{equation}
 
-where $p_d$ is the d-th prime number. Regev explicitly mentions this optimization in his paper, emphasizing the importance of multiplying small numbers with small numbers and how it affects space complexity due to using smaller registers, however the amount of register management required to perform multiplications of varied size in each step would make our code practically unreadable, hence we chose leave that to more practical implementations. It does need to be said that this, according to Regev in \textbf{Chap 3 Eq 6} \cite{Regev2025}, allows us to implement the multi-exponentiation circuit in $O(dlog^3d)$.
+where $p_d$ is the d-th prime number. Regev explicitly mentions this optimization in his paper, emphasizing the importance of multiplying small numbers with small numbers and how it affects space complexity due to the use of smaller registers, however the amount of register management required to perform multiplications of varied size in each step would make our code practically unreadable, hence we chose to leave this part for a followup paper. It does need to be said that this technique, according to Regev in \textbf{Chapter 3 Equation 6} of \cite{Regev2025}, allows us to implement the multi-exponentiation circuit in $O(dlog^3d)$.
 
 
 

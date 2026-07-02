@@ -24,7 +24,8 @@
 \State Form the matrix M from \eqref{eq10.1}
 \State $M' = LLL(M)$
 \State $M'' = GramSchmidt(M')$
-\State $SV$ = The list of all vectors $\mathbf{v}$ in M' where the corresponding M'' vector \textbf{v} has $\lVert \mathbf{v} \rVert <\sqrt{k}2^{k/2}T$  
+\State $Iterate$ through $M''$ and find the first index $h$ where $\lVert \mathbf{v_{h+1}} \rVert >=2^{k/2}T$ 
+\State $SV$ = The list of all vectors $\mathbf{u_1,u_2,\dots,u_h}$ in M'
 \For {$SV(j)$ in SV}
     \State $X \gets \prod_{i=1}^{d} B[i]^{SV_j(e_i)}$
     \State $l \gets \gcd(X-1,N) $
