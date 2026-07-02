@@ -5,7 +5,7 @@ Regev's algorithm and its speedup crucially relies on a specific number theoreti
 
 Now, let $b_1,b_2,\dots ,b_d$, be the first $d$ primes in ascending order. Let $X$ be defined as follows
 \begin{equation}
-    X \equiv b_1^{z_1}b_2^{z_2}\dots b_d^{z_d} \pmod n = \prod_{i=1}^d b_i ^{z_i} \pmod n
+    X \equiv b_1^{z_1}b_2^{z_2}\dots b_d^{z_d} \pmod N = \prod_{i=1}^d b_i ^{z_i} \pmod N
 \end{equation}
 
 for some $z_i \in \mathbb{Z}$. Suppose $\mathbf{z} = (z_1,z_2,\dots,z_d)$ is a vector in $\mathbb{Z}^d$. The set of all vectors $\mathbf{z}$ that satisfy the modular multiplicative congruence $X^2 \equiv 1 \pmod N$ forms a lattice which we will call $\mathit \Lambda$. Furthermore, a sublattice of $\mathit \Lambda$ can be constructed by the set of all vectors $\mathbf{z}$ that satisfy the congruence $X = \pm 1 \pmod n$. We will call this sublattice $\mathit \Lambda_0$, and denote by $\Lambda / \Lambda_0$ the set of vectors that are in $\mathit \Lambda$ but not in $\mathit \Lambda_0$. 
@@ -63,7 +63,7 @@ for some integers $z_i$ with $\lvert z_i\rvert \leq 2^{O(d)}$ for all $1\leq i \
 
 However, this places a very large upper bound on the primes, which severely affects gate complexity for any practical applications. More results need to be produced to guarantee practical functionality.\\
 
-From what we said, it is implied that generally, if X is a QR, the algorithm fails. The reader might therefore wonder regarding the probability of the algorithm's success. As we established, half of the possible solutions are trivial. However, provided the algorithm is much more likely to produce shorter vectors (hence the bound $\lVert \mathbf{z} \rVert \leq 2^{O(d)}$ from earlier), it is also much more likely to produce non-trivial solutions. Lastly, in regards to producing non-trivial solutions, let us state the following lemma:
+From what we said, it is implied that generally, if X is a QR, the algorithm fails. The reader might therefore wonder regarding the probability of the algorithm's success. As we established, half of the possible solutions are trivial. However, as we will find out later, if the algorithm is more likely to produce shorter exponent vectors -hence the bound $\lVert \mathbf{z} \rVert \leq 2^{O(d)}$ from earlier, it is also more likely to produce non-trivial solutions. Lastly, in regards to producing non-trivial solutions, let us state the following lemma:
 
 \textbf{Lemma 6.3 (Pomerance's theorem)}:
 Suppose $G$ is a finite abelian group with minimal number of generators
