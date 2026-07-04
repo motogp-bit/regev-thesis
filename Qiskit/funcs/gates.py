@@ -1,14 +1,14 @@
 from qiskit import QuantumCircuit
 import numpy as np
 
-def CMMC(n, constant, bit):
+def CMMC(n, constant):
     qc = QuantumCircuit(n+1)
     ctrl = qc.qubits[0]
     reg = qc.qubits[1:]
-    bitmask = format(int(1 ^ constant), f'0{n}b')[::-1]
+    bitmask = 1 ^ constant
     for j in range(n):
-        if bitmask[j] == 1:
-            qc.cx(ctrl[0], reg[bit])
+        if (bitmask >> j) & 1:
+            qc.cx(ctrl, reg[j])
     return qc.to_gate()
 
 def SWAP(n):

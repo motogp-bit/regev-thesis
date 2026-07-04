@@ -13,7 +13,6 @@ backend = AerSimulator()
 N = 77 #11*7, d = 3
 n = int(np.ceil(np.log2(N)))
 d = int(np.sqrt(n))
-delta = 1/2
 k = 4
 T = 1
 primes = []
@@ -24,8 +23,8 @@ while len(primes) < d:
     if is_prime(current):
         primes.append(current)
     current += 1
-QFT_gate = QFT(n).to_gate()
-R = np.sqrt(2* d) + 1 #R > sqrt(2d)
+R = int(np.exp(np.sqrt(n)))
+delta = np.sqrt(d) / (np.sqrt(2) * R)
 
 temp = 0
 r = int(2*np.sqrt(d)*R)
@@ -36,37 +35,38 @@ for i in range(r + (r%2) , 2*r, 2):
     if temp == 1: 
         temp = i
         break
+
 D = temp
 reg_size = 2**d #2^n/d
+num_qubits = int(np.log2(D))
+QFT_gate = QFT(num_qubits).to_gate()
+
 samples = []
-amps_nd = gaussian(n, D / 2, R, d)
+amps_nd = gaussian(num_qubits, D / 2, R, d)
 for _ in range(d + k):
 
-    e_regs = [QuantumRegister(n, f'dim_{i}') for i in range(d)]
+    e_regs = [QuantumRegister(num_qubits, f'dim_{i}') for i in range(d)]
     product = QuantumRegister(n, 'product')
 
-    cr_e = ClassicalRegister(n * d, 'cr_e')
+    cr_e = ClassicalRegister(num_qubits * d, 'cr_e')
     cr_p = ClassicalRegister(n, 'cr_p')
 
     qc = QuantumCircuit(*e_regs, product, cr_e, cr_p)
-    qc.initialize(amps_nd, qc.qubits[:n*d])
+    qc.initialize(amps_nd, qc.qubits[:num_qubits*d])
 
     qc, acc= QMME(qc, get_bases(N, d, primes, 2), N, S)
 
     qc.measure(acc, cr_p)
-    regs = [e_regs[j*n:(j+1)*n] for j in range(d)]
-    for reg in regs:
-        qc.append(QFT_gate, reg)
-
     for j in range(d):
-        qc.measure(regs[j], cr_e[j*n:(j+1)*n])
+        qc.append(QFT_gate, e_regs[j])
+        qc.measure(e_regs[j], cr_e[j*num_qubits:(j+1)*num_qubits])
 
     tqc = transpile(qc,backend) #doing this to avoid multiple decompose()
     result = backend.run(tqc, shots=1).result()
     counts = result.get_counts()
-    bitstring = list(counts.keys())[0]
-    e_bits = bitstring[n:]  
-    e_vals = [int(e_bits[j*n:(j+1)*n], 2) for j in range(d)]
+    bitstring = list(counts.keys())
+    p_bits, e_bits = bitstring.split(" ")
+    e_vals = [int(e_bits[j*num_qubits:(j+1)*num_qubits], 2) for j in range(d)]
 
 
     samples.append(e_vals)
@@ -76,16 +76,14 @@ samples = [[x / D for x in row] for row in samples]
 m = []
 for i in range(2*d + k):
     temp = []
-    for j in range(2* d + k):
-        if i == j:
-            if j > d:
-                temp.append(1/delta)
+    for j in range(2*d + k):
+        if i < d: 
+            temp.append(1 if i == j else 0)
+        else: 
+            if j < d:
+                temp.append(samples[i-d][j] / delta)
             else:
-                temp.append(1)
-        elif (j > d) or (i < (d+k)):
-            temp.append(0)
-        else:
-            temp.append(samples[i-d][j] / delta)
+                temp.append((1/delta) if i == j else 0)
     m.append(temp)
 M = m.to_Matrix()
 exps = M.to_DM().lll().to_Matrix()

@@ -1,19 +1,18 @@
 from qiskit import QuantumCircuit
 from gates import CMMC, MOD_PROD
 
-def PMBP(bases, inv_bases, n, d, iteration, N, S):
-    qc = QuantumCircuit(2*n*d + 4*n + S)
-    controls = qc.qubits[:n]
-    acc = qc.qubits[n:2*n]
-    acc_inv = qc.qubits[2*n:3*n]
-    b = qc.qubits[3*n: 3*n + n*d]
-    binv = qc.qubits[3*n + n*d:3*n + 2*n*d]
-    acc = qc.qubits[2*n*d + n: 2*n*d + 2*n]
-    acc_inv = qc.qubits[2*n*d + 2*n: 2*n*d + 3*n]
-    anc = qc.qubits[2*n*d + 3*n:2*n*d + 6*n + S]
+def PMBP(bases, inv_bases, n, d, iteration, N, S, num_qubits):
+    qc = QuantumCircuit(num_qubits * d +2*n*d + 2*n + S)
+    controls = qc.qubits[:num_qubits * d]                           
+    acc = qc.qubits[num_qubits * d:num_qubits * d + n]              
+    acc_inv = qc.qubits[num_qubits * d + n:num_qubits * d + 2*n]    
+    b = qc.qubits[num_qubits * d + 2*n:num_qubits * d + 2*n + n*d]
+    binv = qc.qubits[num_qubits * d + 2*n + n*d:num_qubits * d + 2*n + 2*n*d]
+    anc = qc.qubits[num_qubits * d + 2*n + 2*n*d:num_qubits * d + 2*n + 2*n*d + S]
     for j in range(d):
-        qc.append(CMMC(n, bases[j], iteration), [controls[d * j + iteration], *b[j*n:(j + 1)*n]])
-        qc.append(CMMC(n, inv_bases[j], iteration), [controls[d * j + iteration], *binv[j*n:(j + 1)*n]])
+        ctrl_bit = controls[j * num_qubits + iteration]
+        qc.append(CMMC(n, bases[j], iteration), [ctrl_bit, *b[j*n:(j + 1)*n]])
+        qc.append(CMMC(n, inv_bases[j], iteration), [ctrl_bit, *binv[j*n:(j + 1)*n]])
     current = [b[j*n:(j + 1)*n] for j in range(d)]
     current_inv = [binv[j*n:(j + 1)*n] for j in range(d)]
     size = d
