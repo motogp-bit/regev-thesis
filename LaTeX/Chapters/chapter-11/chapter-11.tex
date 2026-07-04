@@ -7,10 +7,11 @@
 \State $n \gets \lceil \log_2 N \rceil$
 \Comment{Classical preprocessing}
 \State $d \gets \lceil \sqrt{n} \rceil$
+\State $k \gets 4$
 \State $B[] \gets$ the first $d$ primes, in order
 \State $i \gets 0$
 \Comment{Quantum}
-\While{$i < d$}
+\While{$i < d+k$}
     \State Prepare the gaussian. Suppose $amps$ represents the amplitudes
     \State Define two quantum registers, $e[size]$ and $prod$
     \State $e \gets amps[e_i]$

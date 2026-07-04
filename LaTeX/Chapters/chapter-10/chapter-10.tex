@@ -2,12 +2,12 @@
 
 Regev's algorithm can therefore be summarized in the following 12 steps. Let some $d \in \mathbb{Z}$ with $d \approx \sqrt{n}$.\\
 
-1. Create a superposition of all $d$-dimensional vectors $e_1 \dots e_d$, and store them into $d$ quantum registers, weighted by the gaussian function described in Chapter 8.\\
-2. Create a quantum register which will contain the superposition $\prod_{i=1}^d a_i^{e_i} \pmod N$, where $a_i$ are the squares of the first $d$ primes, using the procedure described in Chapter 7.\\
+1. Create a superposition of all $d$-dimensional vectors $e_1 \dots e_d$, and store them in $d$ quantum registers, weighted by the gaussian function described in Chapter 8.\\
+2. Create a quantum register that will contain the superposition $\prod_{i=1}^d a_i^{e_i} \pmod N$, where $a_i$ are the squares of the first $d$ primes, using the procedure described in Chapter 7.\\
 3. Measure the product register to obtain some value $u$. This forces the d exponent registers to collapse into a superposition of vectors that satisfy $\prod_{i=1}^d a_i^{e_i} =u$. This represents some coset $\mathit {\Lambda}_t$ of the lattice $\mathit \Lambda$ formed by the vectors that satisfy the above relation for $u = 1$ (Chapter 5).\\
 4. Apply QFT to the vector registers. This turns the superposition of the d registers into a superposition of dual lattice vectors, and the representative $t$ into a phase applied to the dual lattice vectors.\\
 5. Measure the vector registers, obtaining a d-dimensional vector, and divide the result by $D$ to get a sample of $\Lambda^*$.\\
-6. Repeat steps 1 through 5 $d+k$ times to get $d+k$ samples and use them to create a basis of $\Lambda'$, akin to the procedure described in Chapter 10.\\
+6. Repeat steps 1 through 5 $d+k$ times to acquire $d+k$ samples and use them to create a basis of $\Lambda'$, akin to the procedure described in Chapter 10.\\
 7. Solve SVP on the basis of $\mathit \Lambda'$ using LLL, acquiring vectors $\mathbf{e',e'',e''',}\dots$ etc. with coordinates $e'_1 \dots e'_d, e''_1\dots e''_d$ etc. that satisfy the bound from Chapter 10.\\
 8.For each candidate $\mathbf{e} \in \set{\mathbf{e',e'',e''',\dots}}$ in order, do the following\\
 9.Compute $X = \prod_{i=1}^d b_i^{e_{i}} \pmod N$\\

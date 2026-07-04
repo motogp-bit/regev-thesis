@@ -1,15 +1,15 @@
 \chapter{Regev optimizations: Fibonacci exponentiation}
 
 The first optimization we are going to talk about has to do with transforming the base in which we represent the numbers in a base that is perhaps more suited when dealing with exponents. To do this, we will entice the amateur mathematics enthusiast by bringing the Fibonacci numbers and Fibonacci sequence into the picture.
-To explore this concept, first we will need to talk about Zeckendorf's theorem. The statement is the following:\\
+To explore this concept, first we need to talk about Zeckendorf's theorem. The statement is as follows:\\
 
 $\textbf{Lemma 15.1 (Zeckendorf)}:$\\
-Every positive integer $k$ can be uniquely represented as a sum of non-consecutive Fibonacci numbers.In other word, for every $k \in \mathbb{Z}$:
+Every positive integer $k$ can be uniquely represented as a sum of non-consecutive Fibonacci numbers. In other words, for every $k \in \mathbb{Z}$:
 \begin{equation}
     k = \sum_j c_jFi, \: c_j \in \set{0,1}
 \end{equation}
 
-No two consecutive $c_i$ can be 1, because consecutive Fibonacci numbers can be replaced with the next Fibonacci number according to the recursive formula $F_n = F_{n-1} + {F_n-2}$. This means that representing exponents as bits using a Fibonacci base is perfectly valid. We will now describe a way of computing $a^{k}$ using a Fibonacci base. First, we need to compute the Fibonacci representation of k. To do that in a quantum circuit, we use the following greedy algorithm.
+No two consecutive $c_i$ can be 1, because consecutive Fibonacci numbers can be replaced with the next Fibonacci number according to the recursive formula $F_n = F_{n-1} + {F_n-2}$. This means that representing exponents as bits using a Fibonacci base is perfectly valid. We will now describe a way to compute $a^{k}$ using a Fibonacci base. First, we need to compute the Fibonacci representation of k. To do that in a quantum circuit, we use the following greedy algorithm.
 
 $\textbf{Step 1.}$ Compute all Fibonacci numbers up to $k$ using the recursive formula and store it in an array F, starting from $F[0] = 1,F[1] = 2$.\\
 $\textbf{Step 2.}$ Initialize an array $F_b$ of 0s with size $m-1$, where $F_m$ is the largest Fibonacci number smaller than $k$\\
@@ -55,29 +55,29 @@ Denote the inner product as $C_j$. This leaves us with
 
 What we need to do here essentially is compute this over all possible $C_j$ in superposition,  raise $C_j$ to the power of the next Fibonacci number, and do this over and over until $F_j > 2^d$. To compute the $C_j$, we can basically do exactly what we did in Chapter 13 for modular multi-exponentiation - precompute the inverses, build the tree, multiply into the accumulator, uncompute the tree. 
 
-Where this logic shines however, is with regards to squaring. In our implementation, we had to use a different algorithm for squaring. However, we don't actually need to square when representing numbers in the Fibonacci base. Consider what happens if we sequentially applied our MOD-PROD gate to some arbitrary  $\ket{a} \ket{a}$: \\
+Where this logic shines, however, is with regard to squaring. In our implementation, we had to use a different algorithm for squaring. However, we don't actually need to square when representing numbers in the Fibonacci base. Consider what happens if we sequentially applied our MOD-PROD gate to some arbitrary  $\ket{a} \ket{a}$: \\
 
 1.$\ket{a} \ket{a^{-1}} \ket{a} \ket{a^{-1}} \to \ket{a} \ket{a^{-1}} \ket{a^2} \ket{(a^{2})^{-1}}$\\
 2.$\ket{a} \ket{a^{-1}} \ket{a^2} \ket{(a^{2})^{-1}} \to \ket{a^3} \ket{(a^{3})^{-1}} \ket{a^2} \ket{(a^{2})^{-1}}$\\
 3.$\ket{a^3} \ket{(a^{3})^{-1}} \ket{a^2} \ket{(a^{2})^{-1}} \to \ket{a^3} \ket{(a^{3})^{-1}} \ket{a^5} \ket{(a^{5})^{-1}}$\\
 
-Notice the Fibonacci sequence appearing in the exponents! Now we have a reversible base accessing operation that doesn't leave us with dirty qubits in every iteration. More importantly, it seems that this can actually decrease the qubit count using the optimized multi-exponentiation idea from Chapter 7 with the reduced register sizes, because we won't need the extra $O(n^{3/2})$ qubits to perform squaring anymore.
+Notice how the Fibonacci sequence appears in the exponents! Now we have a reversible base accessing operation that does not leave us with dirty qubits in every iteration. More importantly, it seems that this can actually decrease the qubit count using the optimized multi-exponentiation idea from Chapter 7 with the reduced register sizes, because we will not need the extra $O(n^{3/2})$ qubits to perform squaring anymore.
 
-Let us, finally, describe Algorithm 5.2 from Ragavan and Vaikuntanathan\cite{RagavanVaikuntanathan2023} in terms of what we wrote earlier. It is important to note that this is applied to the shifted exponent $e_i = c_i + D/2$.
+Let us, finally, describe Algorithm 5.2 from Ragavan and Vaikuntanathan\cite{RagavanVaikuntanathan2023} in terms of what we wrote earlier. It is important to note that this is applied to the shifted exponent $e_i = c_i + D/2$. In order to shorten the notation, we will denote by $*$ the act of applying the corresponding operation to the inverse.
 
 \begin{algorithm}[H]
 \caption{Fibonacci multi-exponentiation (top-down)}
-\textbf{Input:} Initial quantum state $\ket{e}$\\
+\textbf{Input:} Initial quantum state $\ket{e}, m$\\
 \textbf{Output:} State consisting of a superposition $\prod_{i=1}^d b_i^{e_i} \pmod N$
 \begin{algorithmic}[1]
-\State Compute $c_{i,j}$ in superposition according to our initial algorithm.
-\State $R \gets 1$
-\For {$j = 0$ to $m$}
-    \State Compute $\ket{C_j}$ in the manner we described in Chapter 13, entangling $the e_i$ in a superposition.
-    \State Run the multiplication circuit on $C_j$ and $C_j^{-1}$ j times to get the next Fibonacci base
-    \State $R \gets RC_j^{F_j}$
-    \State Run the multiplication circuit again $j$ times to turn $\ket{C_j^ {F_j}} \ket{C_j^{-F_j}} \to \ket{C_j} \ket{C_j^{-1}}$  
-    \State Uncompute the intermediate nodes used to compute $\ket{C_j}$ using $\ket{C_j^{-1}}$
+\State Compute $c_{i,j}$ in superposition in accordance with our base algorithm.
+\State Initialize registers $\ket{x_1}\ket{x_1^{-1}} \gets (1,1)$ and $\ket{x_2}\ket{x_2^{-1}} \gets (1,1)$
+\For {$j = m,m-1 \dots$ down to 1}
+    \State Compute the tuple $\ket{C_j}\ket{C_j^{-1}}$ for the current step in the manner we described in Chapter 13, entangling the $e_i$ in a superposition.
+    \State $\ket{x_1}\ket{x_2} \gets \ket{x_1 \cdot x_2 \pmod N},\ket{(x_1 \cdot x_2)^{-1} \pmod N}$,
+    \State $\ket{x_2}\ket{x_2^{-1}} \gets \ket{x_2 \cdot C_j \pmod N},\ket{(x_2 \cdot C_j)^{-1} \pmod N}$
+    \State Swap $\ket{x_1}\ket{x_1^{-1}}$ and $\ket{x_2}\ket{x_2^{-1}}$
+    \State Run the inverse of the circuit used to construct $\ket{C_j}\ket{C_j^{-1}}$ to uncompute it into $\ket{0} \ket{0}$
 \EndFor
 \State $R_1$ is now entangled with $\ket{e}$, and holds the superposition of the possible products.
 \State \Return $R$
