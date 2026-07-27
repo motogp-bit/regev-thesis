@@ -1,12 +1,12 @@
-import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.circuit.libraries import QFT
-from funcs import *
 import math
+import numpy as np
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
+from qiskit.circuit.library import QFT
+from qiskit_aer import AerSimulator
 from sympy import Matrix
 from sympy.polys.matrices import DomainMatrix
-from qiskit_aer import AerSimulator
-from qiskit import transpile
+
+from funcs import *
 
 backend = AerSimulator()
 #Ns = 446393 #p = 509, q = 877, d = 5

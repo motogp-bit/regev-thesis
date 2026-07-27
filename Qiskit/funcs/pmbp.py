@@ -1,5 +1,5 @@
 from qiskit import QuantumCircuit
-from gates import CMMC, MOD_PROD
+from .gates import CMMC, MOD_PROD
 
 def PMBP(bases, inv_bases, n, d, iteration, N, S, num_qubits):
     qc = QuantumCircuit(num_qubits * d +2*n*d + 2*n + S)

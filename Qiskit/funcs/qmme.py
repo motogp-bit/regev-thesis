@@ -1,6 +1,6 @@
 from qiskit import QuantumCircuit, QuantumRegister
-from pmbp import PMBP
-from gates import MSQUARE, QQMULT
+from .pmbp import PMBP
+from .gates import MSQUARE, SWAP
 import numpy as np
 
 def QMME(qc, bases, N, S, num_qubits, d):
