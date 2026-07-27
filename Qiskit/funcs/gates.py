@@ -18,8 +18,10 @@ def SWAP(n):
 
     return qc.to_gate(label=f"SWAP({n})")
 
-#def IN_PLACE_MODULAR_ADDER(N): |a> |b> |0^n> -> |a> |ab mod N> |0^n>
-#def MOD_MULT(n,N): #|a> |b> |0^n> -> |a> |b> |ab mod N>
+def IN_PLACE_MODULAR_ADDER(N): 
+    """|a> |b> |0^n> -> |a> |ab mod N> |0^n>"""
+def MOD_MULT(n,N): 
+    """|a> |b> |0^n> -> |a> |b> |ab mod N>"""
 
 def MUL_ADD_MOD(n, N, S): #|a> |b> |t> |0^n> -> |a> |b> |(t+ab) mod N> |0^n>
     qc = QuantumCircuit(6*n + S)
@@ -56,7 +58,8 @@ def MOD_PROD(n, N, S): #|a> |a^-1> |b> |b^-1> |g> -> |a> |a^-1> |ab> |ab^-1> |g>
     qc.append(SWAP(n), [*b_inv, *g])
     return qc.to_gate
 
-#def MSQUARE(n, N): #|a> |0^n> -> |a> |a^2 mod N>
+def MSQUARE(n, N): 
+    """|a> |0^n> -> |a> |a^2 mod N>"""
 
     
     
