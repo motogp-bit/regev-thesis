@@ -11,8 +11,8 @@ def PMBP(bases, inv_bases, n, d, iteration, N, S, num_qubits):
     anc = qc.qubits[num_qubits * d + 2*n + 2*n*d:num_qubits * d + 2*n + 2*n*d + S]
     for j in range(d):
         ctrl_bit = controls[j * num_qubits + iteration]
-        qc.append(CMMC(n, bases[j], iteration), [ctrl_bit, *b[j*n:(j + 1)*n]])
-        qc.append(CMMC(n, inv_bases[j], iteration), [ctrl_bit, *binv[j*n:(j + 1)*n]])
+        qc.append(CMMC(n, bases[j]), [ctrl_bit, *b[j*n:(j + 1)*n]])
+        qc.append(CMMC(n, inv_bases[j]), [ctrl_bit, *binv[j*n:(j + 1)*n]])
     current = [b[j*n:(j + 1)*n] for j in range(d)]
     current_inv = [binv[j*n:(j + 1)*n] for j in range(d)]
     size = d
@@ -34,7 +34,7 @@ def PMBP(bases, inv_bases, n, d, iteration, N, S, num_qubits):
             right_inv = current_inv[size - 1 - j]
             g = current[1] if j == 0 else current[0]
             qc.append(
-                MOD_PROD(n, N),
+                MOD_PROD(n, N, S),
                 [*left, *left_inv, *right, *right_inv, *g, *anc]
             )
             level_ops.append((left, left_inv, right, right_inv, g))
@@ -46,7 +46,7 @@ def PMBP(bases, inv_bases, n, d, iteration, N, S, num_qubits):
         size = len(current)
 
     qc.append(
-        MOD_PROD(n, N),
+        MOD_PROD(n, N, S),
         [*left, *left_inv, *acc, *acc_inv, *g, *anc]
     )
     

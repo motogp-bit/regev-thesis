@@ -31,7 +31,6 @@ def MUL_ADD_MOD(n, N, S): #|a> |b> |t> |0^n> -> |a> |b> |(t+ab) mod N> |0^n>
     ab = qc.qubits[3*n:5*n]
     abmodn = qc.qubits[5*n:6*n]
     anc_ab = qc.qubits[6*n:6*n + S]
-    qc = QuantumCircuit(a, b, t, ab)
     qc.append(MOD_MULT(n,N), [*a, *b, *ab, *abmodn, *anc_ab])
     qc.append(IN_PLACE_MODULAR_ADDER(N), [*t, *abmodn])
     qc.append(MOD_MULT(n, N).inverse(), [*a, *b, *abmodn])
@@ -47,7 +46,6 @@ def MOD_PROD(n, N, S): #|a> |a^-1> |b> |b^-1> |g> -> |a> |a^-1> |ab> |ab^-1> |g>
     anc1 = qc.qubits[5*n:7*n]
     anc2 = qc.qubits[7*n:8*n]
     anc3 = qc.qubits[8*n:8*n + S]
-    qc = QuantumCircuit(a_n,a_inv, b_n, b_inv, g, anc1, anc2, anc3)
     qc.append(MUL_ADD_MOD(n, N, S), [*a_n,*b_n,*g, *anc1, *anc2, *anc3])
     qc.append(MUL_ADD_MOD(n, N, S).inverse(), [*a_inv,*g,*b_n, *anc1, *anc2, *anc3])
     qc.append(MUL_ADD_MOD(n, N, S),[*a_n, *b_n, *g, *anc1, *anc2, *anc3])
@@ -56,7 +54,7 @@ def MOD_PROD(n, N, S): #|a> |a^-1> |b> |b^-1> |g> -> |a> |a^-1> |ab> |ab^-1> |g>
     qc.append(MUL_ADD_MOD(n, N, S), [*a_inv,*b_inv, *b_n, *anc1, *anc2, *anc3])
     qc.append(SWAP(n), [*b_n, *g])
     qc.append(SWAP(n), [*b_inv, *g])
-    return qc.to_gate
+    return qc.to_gate()
 
 def MSQUARE(n, N): 
     """|a> |0^n> -> |a> |a^2 mod N>"""

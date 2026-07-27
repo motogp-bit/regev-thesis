@@ -54,7 +54,7 @@ for _ in range(d + k):
     qc = QuantumCircuit(*e_regs, product, cr_e, cr_p)
     qc.initialize(amps_nd, qc.qubits[:num_qubits*d])
 
-    qc, acc= QMME(qc, get_bases(N, d, primes, 2), N, S)
+    qc, acc= QMME(qc, get_bases(N, d, primes, 2), N, S, num_qubits, d)
 
     qc.measure(acc, cr_p)
     for j in range(d):
@@ -65,7 +65,7 @@ for _ in range(d + k):
     result = backend.run(tqc, shots=1).result()
     counts = result.get_counts()
     bitstring = list(counts.keys())
-    p_bits, e_bits = bitstring.split(" ")
+    p_bits, e_bits = bitstring[0].split(" ")
     e_vals = [int(e_bits[j*num_qubits:(j+1)*num_qubits], 2) for j in range(d)]
 
 
@@ -85,7 +85,7 @@ for i in range(2*d + k):
             else:
                 temp.append((1/delta) if i == j else 0)
     m.append(temp)
-M = m.to_Matrix()
+M = Matrix(m)
 exps = M.to_DM().lll().to_Matrix()
 cands = []
 for i in range(len(exps)):

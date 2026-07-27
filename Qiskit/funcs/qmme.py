@@ -3,12 +3,12 @@ from .pmbp import PMBP
 from .gates import MSQUARE, SWAP
 import numpy as np
 
-def QMME(qc, bases, N, S, num_qubits, d):
+def QMME(qc, bases_unpc, N, S, num_qubits, d):
     n = int(np.ceil(np.log2(N)))
-    d = len(bases)
+    d = len(bases_unpc)
+    bases = [int(x) for x in np.asarray(bases_unpc).flat]
     bases_inv = []
-    for base in bases:
-        bases_inv.append(pow(base, -1, N))
+    bases_inv = [pow(int(x), -1, N) for x in np.asarray(bases).flat]
     e_regs = qc.qubits[:num_qubits * d]
     acc = qc.qubits[num_qubits * d:num_qubits * d + n]
     accinv = qc.qubits[num_qubits * d + n:num_qubits * d + 2*n]
